@@ -2,7 +2,7 @@ AddHandler wsgi-script .wsgi
 
 RewriteEngine On
 #RewriteCond %{REQUEST_FILENAME} !-f # Don't interfere with static files
-RewriteRule ^(.*)$ http://eventer.dimau.ru/cgi-bin/simple_wsgi.wsgi [QSA,L]
+RewriteRule ^(.*)$ cgi-bin/simple_wsgi.wsgi [QSA,L]
 
 
 #### This is example of django rewrite. ###
