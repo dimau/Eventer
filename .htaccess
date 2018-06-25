@@ -1,5 +1,11 @@
-ScriptAlias /test /path/to/the/application.cgi
+AddHandler wsgi-script .wsgi
 
 RewriteEngine On
 RewriteCond %{REQUEST_FILENAME} !-f # Don't interfere with static files
-RewriteRule ^(.*)$ /path/to/the/application.cgi/$1 [L]
+RewriteRule ^(.*)$ /cgi-bin/simple_wsgi.wsgi/$1 [QSA,L]
+
+
+#### This is example of django rewrite. ###
+#RewriteEngine on
+#RewriteCond %{REQUEST_FILENAME} !-f
+#RewriteRule ^(.*)$ /django.wsgi/$1 [QSA,PT,L]
