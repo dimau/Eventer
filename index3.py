@@ -1,4 +1,4 @@
-#!/home/host1423612/.virtualenvs/eventer-env/bin/python
+#!/home/host1423612/eventer-env/bin/python
 #  -*- coding: UTF-8 -*-
 
 from flask import Flask
