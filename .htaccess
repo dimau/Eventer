@@ -1,0 +1,5 @@
+ScriptAlias /test /path/to/the/application.cgi
+
+RewriteEngine On
+RewriteCond %{REQUEST_FILENAME} !-f # Don't interfere with static files
+RewriteRule ^(.*)$ /path/to/the/application.cgi/$1 [L]
