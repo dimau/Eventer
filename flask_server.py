@@ -3,12 +3,13 @@
 
 
 from flask import Flask
+from flask import Response
 app = Flask(__name__)
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
-    return """{
+    json_response = """{
   "fulfillmentText": "This is a text response",
   "fulfillmentMessages": [
     {
@@ -63,6 +64,7 @@ def index():
     }
   }
 }"""
+    return Response(json_response, mimetype='application/json')
 
 
 @app.route("/test/")
