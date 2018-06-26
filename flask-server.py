@@ -65,5 +65,10 @@ def index():
 }"""
 
 
+@app.route("/test")
+def hello():
+    return "Hello World! It works!"
+
+
 if __name__ == "__main__":
     app.run()
