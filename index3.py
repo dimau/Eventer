@@ -1,14 +1,27 @@
 #!/home/host1423612/eventer-env/bin/python
 #  -*- coding: UTF-8 -*-
 
-from flask import Flask
-app = Flask(__name__)
+import sys
+print("It works", file=sys.stderr)
+
+try:
+    from flask import Flask
+
+    app = Flask(__name__)
 
 
-@app.route("/")
-@app.route("/test")
-def hello():
-    return "Hello World! Flaaaaaask"
+    @app.route("/")
+    @app.route("/test")
+    def hello():
+        return "Hello World! Flaaaaaask"
+
+except:
+    #import sys
+
+    from traceback import format_list, extract_tb
+
+    (extype, value, trace) = sys.exc_info()
+    print("%s:%s\n%s" % (extype, value, ''.join(format_list(extract_tb(trace)))), file=sys.stderr)
 
 
 """
