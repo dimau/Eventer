@@ -9,4 +9,4 @@ with open(activate_this) as file_:
 
 sys.path.append('/home/host1423612/dimau.ru/htdocs/www/')
 
-from flask-server import app as application
+from flask_server import app as application
