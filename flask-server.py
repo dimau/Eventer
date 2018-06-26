@@ -1,9 +1,12 @@
-from flask import Flask
+#!/home/host1423612/eventer-env/bin/python
+#  -*- coding: UTF-8 -*-
 
+
+from flask import Flask
 app = Flask(__name__)
 
 
-@app.route("/")
+@app.route("/", methods=["POST"])
 def index():
     return """{
   "fulfillmentText": "This is a text response",

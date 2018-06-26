@@ -3,7 +3,6 @@ AddHandler wsgi-script .wsgi
 RewriteEngine On
 #RewriteCond %{REQUEST_FILENAME} !-f
 RewriteRule ^(.*)$ eventer.wsgi [QSA,L]
-#RewriteRule ^(.*)$ cgi-bin/eventer.cgi [QSA,L]
 
 
 #### This is example of django rewrite. ###
