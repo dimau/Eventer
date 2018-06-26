@@ -11,7 +11,7 @@ app = Flask(__name__)
 def index():
     json_response = """{
   "fulfillmentText": "This is a text response",
-  "source": "dimau.ru/eventer.wsgi/",
+  "source": "dimau.ru/eventer.wsgi/"
 }"""
     return Response(json_response, mimetype='application/json')
 
