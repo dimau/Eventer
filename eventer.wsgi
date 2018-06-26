@@ -10,7 +10,4 @@ with open(activate_this) as file_:
 
 sys.path.append('/home/host1423612/dimau.ru/htdocs/www/')
 
-#from index3 import app as application
-
-import index3
-application = index3.app
+from index3 import app as application
