@@ -1,8 +1,8 @@
 AddHandler wsgi-script .wsgi
 
 RewriteEngine On
-#RewriteCond %{REQUEST_FILENAME} !-f # Don't interfere with static files
-RewriteRule ^(.*)$ cgi-bin/eventer.wsgi [QSA,L]
+RewriteCond %{REQUEST_FILENAME} !-f # Don't interfere with static files
+RewriteRule ^(.*)$ eventer.wsgi [QSA,L]
 #RewriteRule ^(.*)$ cgi-bin/eventer.cgi [QSA,L]
 
 
