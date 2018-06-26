@@ -65,7 +65,7 @@ def index():
 }"""
 
 
-@app.route("/test")
+@app.route("/test/")
 def hello():
     return "Hello World! It works!"
 

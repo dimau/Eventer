@@ -2,10 +2,4 @@ AddHandler wsgi-script .wsgi
 
 RewriteEngine On
 #RewriteCond %{REQUEST_FILENAME} !-f
-RewriteRule ^(.*)$ eventer.wsgi/$1 [QSA,L]
-
-
-#### This is example of django rewrite. ###
-#RewriteEngine on
-#RewriteCond %{REQUEST_FILENAME} !-f
-#RewriteRule ^(.*)$ /django.wsgi/$1 [QSA,PT,L]
+RewriteRule ^(.*)$ eventer.wsgi [QSA,L]
