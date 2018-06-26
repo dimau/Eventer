@@ -11,7 +11,6 @@ try:
 
 
     @app.route("/cgi-bin/eventer.wsgi")
-    @app.route("cgi-bin/eventer.wsgi")
     @app.route("/")
     @app.route("/test")
     def hello():
