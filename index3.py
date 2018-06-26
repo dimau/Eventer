@@ -5,7 +5,7 @@ from flask import Flask
 app = Flask(__name__)
 
 
-@app.route("/cgi-bin/eventer.cgi")
+@app.route("/")
 @app.route("/test")
 def hello():
     return "Hello World! Flaaaaaask"
