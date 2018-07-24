@@ -3,11 +3,13 @@
 
 from flask import Flask
 from flask import Response
+import apiai, json
 app = Flask(__name__)
 
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    request_json = json.loads(request.getresponse().read().decode('utf-8'))
     json_response = """
     {
     "fulfillmentText": "Вот такой ответ тебе!",
