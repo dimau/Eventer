@@ -3,6 +3,7 @@
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 import apiai
 import json
+import UserRequest
 
 # Параметры для конфига системы
 api_ai_token = "9f442ba7276d40d1aa64a32a156af507"
@@ -25,11 +26,19 @@ def text_message(bot, update_from_telegram):
     user_message_text = update_from_telegram.message.text
     result_of_classification = get_classification_and_entities(api_ai_token, user_message_text)
 
-    # Если удалось обработать сообщение, то формируем ответ пользователю, иначе отвечаем заглушкой
-    if result_of_classification:
-        bot.send_message(chat_id=update_from_telegram.message.chat_id, text='Ответ заглушечкой')
-    else:
-        bot.send_message(chat_id=update_from_telegram.message.chat_id, text='Шестеренки за болты забежали, попробуйте еще раз')
+    # Если не удалось обработать сообщение, то отвечаем заглушкой
+    if not result_of_classification:
+        bot.send_message(chat_id=update_from_telegram.message.chat_id,
+                         text='Шестеренки за болты забежали, попробуйте еще раз')
+
+    # Готовим ответ пользователю и отвечаем
+    print("Дошли до формирования ответа: " + user_message_text + "результаты классификации " + str(result_of_classification))
+    user_request = UserRequest(user_message_text, result_of_classification)
+    print("Создали обект " + str(user_request))
+    answer = user_request.get_answer()
+    print("Ответ " + answer)
+    bot.send_message(chat_id=update_from_telegram.message.chat_id, text=answer)
+
 
 
 def get_classification_and_entities(api_ai_token, user_message_text):
@@ -61,6 +70,7 @@ def get_classification_and_entities(api_ai_token, user_message_text):
         result['date'] = response_json_from_apiai['result']['parameters']['date']
         result['free_or_not'] = response_json_from_apiai['result']['parameters']['Free-or-not']
         result['time_period'] = response_json_from_apiai['result']['parameters']['time-period']
+        result['type-of-action'] = response_json_from_apiai['result']['parameters']['Type-of-action']
 
     return result
 

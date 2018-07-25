@@ -5,7 +5,12 @@ import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from Event import Event
 
-engine = sqlalchemy.create_engine("mysql://eventer:88nJnmd446HbngYh-DDvb@localhost/eventer?charset=utf8", echo=False)
+# Параметры для конфиг файла
+user_for_mysql = "eventer"
+password_for_mysql = "Nhgbf86jmnIK"
+
+# Запуск сессии с базой данных
+engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/eventer?charset=utf8", echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 
@@ -47,31 +52,6 @@ class KudaGoParser:
             page_number = page_number + 1
 
     @staticmethod
-    def list_parser(url_content):
-        """
-        Метод возвращает коллекцию из событий с данной страницы
-        :return: 
-        """
-        url_content_json = url_content.json()
-        return url_content_json['results']
-
-    @staticmethod
-    def item_parser(item):
-        """
-        Достает поля, нужные для сохранения события в БД
-        :param item:
-        :return:
-        """
-        event = {}
-        event['id_kudago'] = item['id']
-        event['title'] = item['title']
-        event['description'] = item['description']
-        event['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
-        event['categories_kudago'] = item['categories'][0]
-        event['tags_kudago'] = item['tags']
-        return event
-
-    @staticmethod
     def get_last_handled_id():
         """
         Возвращает самый большой id_kudago из базы (последнее сохраненное в БД мероприятие с этого сайта)
@@ -84,6 +64,35 @@ class KudaGoParser:
         return last_handled_id_tuple[0]
 
     @staticmethod
+    def make_url(page):
+        """
+        Собирает урл для получения страницы со списком мероприятий
+        :return:
+        """
+        url_template = 'https://kudago.com/public-api/v1.4/events/?' \
+                       'lang=%(lang)s&' \
+                       'page_size=%(page_size)s&' \
+                       'order_by=%(order_by)s&' \
+                       'text_format=%(text_format)s&' \
+                       'location=%(location)s&' \
+                       'is_free=%(is_free)s&' \
+                       'fields=%(fields)s&' \
+                       'page=%(page)s'
+
+        url = url_template % {
+            'lang': 'ru',
+            'page_size': '10',
+            'order_by': "-id",
+            'text_format': 'html',
+            'location': 'msk',
+            'is_free': '0',
+            'fields': 'id,dates,title,short_title,slug,place,description,body_text,location,categories, \
+                tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants',
+            'page': page
+        }
+        return url
+
+    @staticmethod
     def get_url_content(url):
         """
         Возвращает объект ответа с полным html текстом страницы (или JSON словарем) по переданному url
@@ -94,38 +103,84 @@ class KudaGoParser:
         return req
 
     @staticmethod
-    def make_url(page):
+    def list_parser(url_content):
         """
-        Собирает урл для получения страницы со списком мероприятий
+        Метод возвращает коллекцию из событий с данной страницы
+        :return: 
+        """
+        url_content_json = url_content.json()
+        return url_content_json['results']
+
+    def item_parser(self, item):
+        """
+        Достает поля, нужные для сохранения события в БД
+        :param item:
         :return:
         """
-        url_template = 'https://kudago.com/public-api/v1.4/events/?' \
-            'lang=%(lang)s&' \
-            'page_size=%(page_size)s&' \
-            'order_by=%(order_by)s&' \
-            'text_format=%(text_format)s&' \
-            'location=%(location)s&' \
-            'is_free=%(is_free)s&' \
-            'fields=%(fields)s&' \
-            'page=%(page)s'
+        event = {}
+        event['id_kudago'] = item['id']
+        event['title'] = item['title']
+        event['description'] = item['description']
+        event['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
+        event['categories_kudago'] = item['categories'][0]
+        event['tags_kudago'] = item['tags']
+        event['categories'] = self.type_of_event_converter(item['categories'][0])
+        return event
 
-        url = url_template % {
-            'lang': 'ru',
-            'page_size': '10',
-            'order_by': "-id",
-            'text_format': 'html',
-            'location': 'msk',
-            'is_free': '0',
-            'fields': 'id,dates,title,short_title,slug,place,description,body_text,location,categories, \
-            tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants',
-            'page': page
+    @staticmethod
+    def type_of_event_converter(source_type_of_event):
+        type_of_event_dictionary = {
+            "concert": ["concert"],
+            "theater": ["theater"],
+            "education": ["education"],
+            "party": ["party"],
+            "sport": ["sport"],
+            "exhibition": ["exhibition"],
+            "tour": ["tour"],
+            "festival": ["festival"],
+            "cinema": ["cinema"],
+            "fashion": ["fashion"],
+            "show": ["show"],
+            "holiday": ["holiday"],
+            "social-activity": ["social-activity"],
+            "yarmarki-razvlecheniya-yarmarki": ["yarmarki-razvlecheniya-yarmarki"],
+            "games": ["games"],
+            "night": ["night"],
+            "meeting": ["meeting"],
+            "speed-dating": ["speed-dating"],
+            "flashmob": ["flashmob"],
+            "masquerade": ["masquerade"],
+            "romance": ["romance"],
+            "dance-trainings": ["dance-trainings"],
+            "evening": ["evening"],
+            "discount": ["discount"],
+            "stock": ["stock"],
+            "sale": ["sale"],
+            "shopping": ["shopping"],
+            "quest": ["quest"],
+            "ball": ["ball"],
+            "yoga": ["yoga"],
+            "presentation": ["presentation"],
+            "magic": ["magic"],
+            "kvn": ["kvn"],
+            "comedy-club": ["comedy-club"],
+            "stand-up": ["stand-up"],
+            "kids": ["kids"],
+            "circus": ["circus"],
+            "open": ["open"],
+            "other": ["other"],
+            "photo": ["photo"],
+            "global": ["global"],
+            "permanent-exhibitions": ["permanent-exhibitions"],
+            "business-events": ["business-events"]
         }
-        return url
+        return set(type_of_event_dictionary.get(source_type_of_event, []))
 
     @staticmethod
     def write_events_to_db(events_collection_normalized):
         for item in events_collection_normalized:
             event = Event(item)
+            event.prepare_for_write_to_db()
             session.add(event)
         session.commit()
 

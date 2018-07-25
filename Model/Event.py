@@ -11,32 +11,55 @@ class Event(Base):
     title = sqlalchemy.Column(sqlalchemy.String(150))
     description = sqlalchemy.Column(sqlalchemy.String(1000))
     id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
-    categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))
-    tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))
+    categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
+    tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
     url = sqlalchemy.Column(sqlalchemy.String(500))
+    categories = sqlalchemy.Column(sqlalchemy.String(1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
 
     def __init__(self, source_dict):
 
-        self.title = ""
-        self.description = ""
-        self.id_kudago = ""
-        self.categories_kudago = ""
-        self.tags_kudago = ""
-        self.url = ""
+        self.title = source_dict.get('title', '')
+        self.description = source_dict.get('description', '')
+        self.id_kudago = source_dict.get('id_kudago', '')
+        self.categories_kudago = source_dict.get('categories_kudago', '')
+        self.tags_kudago = pickle.dumps(source_dict.get('tags_kudago', ''))
+        self.url = source_dict.get('url', '')
+        self.categories = source_dict.get('categories', set())
 
-        if source_dict['title']:
-            self.title = source_dict['title']
-        if source_dict['description']:
-            self.description = source_dict['description']
-        if source_dict['id_kudago']:
-            self.id_kudago = source_dict['id_kudago']
-        if source_dict['categories_kudago']:
-            self.categories_kudago = source_dict['categories_kudago']
-        if source_dict['tags_kudago']:
-            self.tags_kudago = pickle.dumps(source_dict['tags_kudago'])
-        if source_dict['url']:
-            self.url = source_dict['url']
+    def __repr__(self):
+        return "Event title: {}, " \
+                "description: {}, " \
+                "id_kudago: {}, " \
+                "categories_kudago: {}, " \
+                "tags_kudago: {}, " \
+                "url: {}, " \
+                "categories: {}".format(self.title,
+                                        self.description,
+                                        self.id_kudago,
+                                        self.categories_kudago,
+                                        self.tags_kudago,
+                                        self.url,
+                                        self.categories)
 
+    def prepare_for_write_to_db(self):
+        """
+        Метод конвертирует поля объекта в формат, пригодный для сохранения в базу данных
+        :return:
+        """
+        self.categories = self.convert_from_set_to_string(self.categories)
+
+    @staticmethod
+    def convert_from_set_to_string(source_set):
+        """
+        Метод конвертирует множество в строку в заданном формате для сохранения в БД - все элементы через |
+        :param source_set:
+        :return:
+        """
+        final_string = ""
+        for element in source_set:
+            final_string += element
+            final_string += " | "
+        return final_string
 
 """
 Все категории событий
