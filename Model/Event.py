@@ -7,24 +7,26 @@ class Event(Base):
 
     __tablename__ = 'events'
 
-    id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    title = sqlalchemy.Column(sqlalchemy.String(150))
-    description = sqlalchemy.Column(sqlalchemy.String(1000))
-    id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
-    categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
-    tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
-    url = sqlalchemy.Column(sqlalchemy.String(500))
-    categories = sqlalchemy.Column(sqlalchemy.String(1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
+    _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    _title = sqlalchemy.Column(sqlalchemy.String(150))
+    _description = sqlalchemy.Column(sqlalchemy.String(1000))
+    _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
+    _categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
+    _tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
+    _url = sqlalchemy.Column(sqlalchemy.String(500))
+    _categories = sqlalchemy.Column(sqlalchemy.String(1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
+    _image = sqlalchemy.Column(sqlalchemy.String(200))
 
     def __init__(self, source_dict):
 
-        self.title = source_dict.get('title', '')
-        self.description = source_dict.get('description', '')
-        self.id_kudago = source_dict.get('id_kudago', '')
-        self.categories_kudago = source_dict.get('categories_kudago', '')
-        self.tags_kudago = pickle.dumps(source_dict.get('tags_kudago', ''))
-        self.url = source_dict.get('url', '')
-        self.categories = source_dict.get('categories', set())
+        self._title = source_dict.get('title', '')
+        self._description = source_dict.get('description', '')
+        self._id_kudago = source_dict.get('id_kudago', '')
+        self._categories_kudago = source_dict.get('categories_kudago', '')
+        self._tags_kudago = pickle.dumps(source_dict.get('tags_kudago', ''))
+        self._url = source_dict.get('url', '')
+        self._categories = source_dict.get('categories', set())
+        self._image = source_dict.get('image', '')
 
     def __repr__(self):
         return "Event title: {}, " \
@@ -33,20 +35,37 @@ class Event(Base):
                 "categories_kudago: {}, " \
                 "tags_kudago: {}, " \
                 "url: {}, " \
-                "categories: {}".format(self.title,
-                                        self.description,
-                                        self.id_kudago,
-                                        self.categories_kudago,
-                                        self.tags_kudago,
-                                        self.url,
-                                        self.categories)
+                "categories: {}".format(self._title,
+                                        self._description,
+                                        self._id_kudago,
+                                        self._categories_kudago,
+                                        self._tags_kudago,
+                                        self._url,
+                                        self._categories,
+                                        self._image)
+
+    @property
+    def title(self):
+        return self._title
+
+    @property
+    def categories(self):
+        return self._categories
+
+    @property
+    def url(self):
+        return self._url
+
+    @property
+    def image(self):
+        return self._image
 
     def prepare_for_write_to_db(self):
         """
         Метод конвертирует поля объекта в формат, пригодный для сохранения в базу данных
         :return:
         """
-        self.categories = self.convert_from_set_to_string(self.categories)
+        self._categories = self.convert_from_set_to_string(self._categories)
 
     @staticmethod
     def convert_from_set_to_string(source_set):

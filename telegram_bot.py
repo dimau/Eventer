@@ -1,79 +1,48 @@
 # -*- coding: utf-8 -*-
 
 from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
-import apiai
-import json
-import UserRequest
+import sqlalchemy
+from sqlalchemy.orm import sessionmaker
+from UserRequest import UserRequest
 
 # Параметры для конфига системы
-api_ai_token = "9f442ba7276d40d1aa64a32a156af507"
 telegram_token = "524706088:AAGq3De-XCF-vb3-Z5NvScaoULoMAlosYO4"
 
 # Создаем основные объекты для работы с телеграмом
 updater = Updater(token=telegram_token)
 dispatcher = updater.dispatcher
 
+# Запуск сессии с базой данных
+user_for_mysql = "eventer"
+password_for_mysql = "Nhgbf86jmnIK"
+engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/eventer?charset=utf8", echo=False)
+Session = sessionmaker(bind=engine)
+session = Session()
 
-# Обработка первой команды на старт работы с ботом
+
+def make_text_answer_from_data(data_for_answer):
+    text_answer = ""
+    text_answer += data_for_answer.get("text", "")
+    if "img" in data_for_answer.keys():
+        text_answer += "<a href='" + data_for_answer["img"] + "' target='_blank'>.</a>"
+    if "url" in data_for_answer.keys():
+        text_answer += """
+<a href='""" + data_for_answer["url"] + "' target='_blank'>Подробнее про событие</a>"
+    return text_answer
+
+
+# Handler for first command - start
 def start_command(bot, update):
     bot.send_message(chat_id=update.message.chat_id, text='Привет, я помогу тебе выбрать мероприятие, на которое стоит сходить')
 
 
-# Обработка текстовых сообщений от пользователя
+# Handler for text message
 def text_message(bot, update_from_telegram):
-
-    # Получаем результаты классификации и выделения сущностей из api ai
     user_message_text = update_from_telegram.message.text
-    result_of_classification = get_classification_and_entities(api_ai_token, user_message_text)
-
-    # Если не удалось обработать сообщение, то отвечаем заглушкой
-    if not result_of_classification:
-        bot.send_message(chat_id=update_from_telegram.message.chat_id,
-                         text='Шестеренки за болты забежали, попробуйте еще раз')
-
-    # Готовим ответ пользователю и отвечаем
-    print("Дошли до формирования ответа: " + user_message_text + "результаты классификации " + str(result_of_classification))
-    user_request = UserRequest(user_message_text, result_of_classification)
-    print("Создали обект " + str(user_request))
-    answer = user_request.get_answer()
-    print("Ответ " + answer)
-    bot.send_message(chat_id=update_from_telegram.message.chat_id, text=answer)
-
-
-
-def get_classification_and_entities(api_ai_token, user_message_text):
-    """
-    Функция возвращает результата классификации реплики пользователя и выделенные сущности
-    :param api_ai_token: токен для доступа к интерфейсу api ai
-    :param user_message_text: текст сообщения пользователя
-    :return: словарь с тематикой обращения и выделенными сущностями
-    """
-    result = {}
-    request_to_apiai = apiai.ApiAI(api_ai_token).text_request()  # Токен API к Dialogflow
-    request_to_apiai.lang = 'ru'  # На каком языке будет послан запрос
-    request_to_apiai.session_id = "idSessionOfDialog"  # ID Сессии диалога (нужно, чтобы потом учить бота)
-    request_to_apiai.query = user_message_text  # Готовим к передаче в apiai текст сообщения пользователя
-
-    # Непосредственно выполняем запрос к apiai
-    try:
-        response_json_from_apiai = json.loads(request_to_apiai.getresponse().read().decode('utf-8'))
-    except Exception as e:
-        print("ошибка ", str(e))
-
-    # Получаем результат классификации сообщения пользователя
-    result['intent_name'] = response_json_from_apiai['result']['metadata']['intentName']
-
-    # Параметры для интента поиска мероприятий
-    if result['intent_name'] == 'Find events':
-        result['date_period'] = response_json_from_apiai['result']['parameters']['date-period']
-        result['with_who'] = response_json_from_apiai['result']['parameters']['With-who']
-        result['date'] = response_json_from_apiai['result']['parameters']['date']
-        result['free_or_not'] = response_json_from_apiai['result']['parameters']['Free-or-not']
-        result['time_period'] = response_json_from_apiai['result']['parameters']['time-period']
-        result['type-of-action'] = response_json_from_apiai['result']['parameters']['Type-of-action']
-
-    return result
-
+    user_request = UserRequest(user_message_text, session)
+    data_for_answer = user_request.get_answer()
+    text_answer = make_text_answer_from_data(data_for_answer)
+    bot.send_message(chat_id=update_from_telegram.message.chat_id, parse_mode='HTML', text=text_answer)
 
 # Создаем обработчики событий для телеграма
 start_command_handler = CommandHandler('start', start_command)

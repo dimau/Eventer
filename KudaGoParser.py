@@ -46,7 +46,7 @@ class KudaGoParser:
 
             # Список событий отсортирован по убыванию id, если в новой выборке есть хотя бы 1 событие,
             # которое уже есть в базе, то дальше перебирать страницы нет смысла
-            if old_event_in_collection or page_number == 4:
+            if old_event_in_collection or page_number == 5:
                 break
 
             page_number = page_number + 1
@@ -58,7 +58,7 @@ class KudaGoParser:
         :return:
         """
         try:
-            last_handled_id_tuple = session.query(Event.id_kudago).order_by(Event.id_kudago)[-1]
+            last_handled_id_tuple = session.query(Event._id_kudago).order_by(Event._id_kudago)[-1]
         except IndexError:
             last_handled_id_tuple = (0,)
         return last_handled_id_tuple[0]
@@ -125,6 +125,10 @@ class KudaGoParser:
         event['categories_kudago'] = item['categories'][0]
         event['tags_kudago'] = item['tags']
         event['categories'] = self.type_of_event_converter(item['categories'][0])
+        if len(item['images']) > 0:
+            event['image'] = item['images'][0]['image']
+        else:
+            event['image'] = ""
         return event
 
     @staticmethod
