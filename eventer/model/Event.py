@@ -29,13 +29,13 @@ class Event(Base):
         self._image = source_dict.get('image', '')
 
     def __repr__(self):
-        return "Event title: {}, " \
+        return "<Event title: {}, " \
                 "description: {}, " \
                 "id_kudago: {}, " \
                 "categories_kudago: {}, " \
                 "tags_kudago: {}, " \
                 "url: {}, " \
-                "categories: {}".format(self._title,
+                "categories: {}>".format(self._title,
                                         self._description,
                                         self._id_kudago,
                                         self._categories_kudago,
@@ -43,6 +43,10 @@ class Event(Base):
                                         self._url,
                                         self._categories,
                                         self._image)
+
+    @property
+    def event_id(self):
+        return self._id
 
     @property
     def title(self):

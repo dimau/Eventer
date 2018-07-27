@@ -1,18 +1,20 @@
-
 import apiai
 import json
 from Event import Event
+from User import User
+from Rating import Rating
 
 
 class UserRequest:
 
 
-    def __init__(self, user_message_text, session_with_db):
+    def __init__(self, user_message_text="", session_with_db=None, user=None):
 
         # Исходные данные - текстовое сообщение, объект сессии с БД и токен для доступа к dialogflow
         self.user_message_text = user_message_text
         self.api_ai_token = "9f442ba7276d40d1aa64a32a156af507"
         self.session = session_with_db
+        self.user = user
 
         # Получим результаты обработки NLP
         result_of_classification = self.get_classification_and_entities()
@@ -21,7 +23,7 @@ class UserRequest:
 
 
     def __repr__(self):
-        return "UserRequest intent: {}, result_of_classification: {}".format(self.intent, str(self.result_of_classification))
+        return "<UserRequest intent: {}, result_of_classification: {}>".format(self.intent, str(self.result_of_classification))
 
     def get_answer(self):
 
@@ -39,17 +41,55 @@ class UserRequest:
         if self.intent == 'Find events':
             target_categories = self.get_categories_for_type_of_action(self.result_of_classification['type-of-action'])
             target_date = self.result_of_classification['date']
-            relevant_event = self.get_events_for_conditions(target_date, target_categories)
             # TODO: test
             print(str(self.result_of_classification))
-            if not relevant_event:
-                answer["text"] = "Я не нашел событий под ваши условия, может быть переформулируете?"
+            relevant_events = self.get_sorted_events_for_conditions(target_date, target_categories)
+            if not relevant_events:
+                answer["text"] = "Я не нашел событий под эти условия, давайте переформулируем?"
                 answer["status"] = "none_event"
+                self.user.clear_last_queue_events()
                 return answer
-            answer["text"] = relevant_event.title.capitalize()
-            answer["url"] = relevant_event.url
-            answer["img"] = relevant_event.image
+
+            answer["text"] = relevant_events[0].title.capitalize()
+            answer["url"] = relevant_events[0].url
+            answer["img"] = relevant_events[0].image
             answer["status"] = "one_event"
+
+            # We have to save the sorted list of relevant events for user
+            self.user.last_queue_events = self.get_id_for_events_in_iterator(relevant_events)
+            self.session.add(self.user)
+            self.session.commit()
+            return answer
+
+        if self.intent == "Like" or self.intent == "Dislike":
+
+            # We will work with last queue of events for this user and we will change it in database
+            last_queue_events = self.user.last_queue_events
+            self.session.add(self.user)
+            print("в очереди вот: " + str(last_queue_events))
+
+            # Add like or dislike for previous event
+            previous_event_id = last_queue_events[0]
+            value_of_like = 1 if self.intent == "Like" else 0
+            rating = Rating(user_id=self.user.user_id, event_id=previous_event_id, like=value_of_like)
+            self.session.add(rating)
+
+            # In queue there isn't other events
+            if len(last_queue_events) == 1:
+                answer["text"] = "Больше не осталось подходящих событий, поищем что-то еще?"
+                answer["status"] = "none_event"
+                self.user.clear_last_queue_events()
+            else:
+                next_event_id = last_queue_events[1]
+                next_event = self.session.query(Event).filter(Event._id == next_event_id).first()
+                answer["text"] = next_event.title.capitalize()
+                answer["url"] = next_event.url
+                answer["img"] = next_event.image
+                answer["status"] = "one_event"
+                self.user.delete_previous_event_from_queue()
+
+            # Save all changes to database
+            self.session.commit()
             return answer
 
         answer["text"] = "Шестеренки за болты забежали, попробуйте еще раз"
@@ -153,6 +193,12 @@ class UserRequest:
 
 
     def get_events_for_conditions(self, date, categories):
+        """
+        Return set of events that is fitting for user request by category, date and other conditions (NOT SORTED BY RELEVANCE)!!!
+        :param date:
+        :param categories:
+        :return: set of Events
+        """
         relevant_events = set()
         try:
             for category in categories:
@@ -160,7 +206,21 @@ class UserRequest:
         except Exception as e:
             print(str(e))
 
-        if len(relevant_events) == 0:
-            return None
+        return relevant_events
 
-        return relevant_events.pop()
+    def get_sorted_events_for_conditions(self, date, categories):
+        """
+        Return sorted list of relevant events that is fitting for user request
+        :param date:
+        :param categories:
+        :return: sorted list of Events
+        """
+        relevant_events = self.get_events_for_conditions(date,categories)
+        return list(relevant_events)
+
+    @staticmethod
+    def get_id_for_events_in_iterator(iterator):
+        list_of_id = []
+        for item in iterator:
+            list_of_id.append(item.event_id)
+        return list_of_id

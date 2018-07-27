@@ -7,4 +7,8 @@ password_for_mysql = "Nhgbf86jmnIK"
 
 engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/eventer?charset=utf8", echo=False)
 
+import Event
+import User
+import Rating
+
 Base.metadata.create_all(engine)
