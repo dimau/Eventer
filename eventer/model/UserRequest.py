@@ -24,7 +24,13 @@ class UserRequest:
         return "UserRequest intent: {}, result_of_classification: {}".format(self.intent, str(self.result_of_classification))
 
     def get_answer(self):
-        answer = {}
+
+        # Initialize response object and immediately write there intent of the request
+        # Intent will be useful for view functions
+        answer = {"intent": self.intent}
+
+        # TODO: test
+        print("Интент: " + str(self.intent) + " Сообщение: " + self.user_message_text)
 
         if self.intent == 'Greeting':
             answer["text"] = "Привет, дорогой друг! Какие мероприятия тебя интересуют?"
@@ -34,13 +40,16 @@ class UserRequest:
             target_categories = self.get_categories_for_type_of_action(self.result_of_classification['type-of-action'])
             target_date = self.result_of_classification['date']
             relevant_event = self.get_events_for_conditions(target_date, target_categories)
+            # TODO: test
             print(str(self.result_of_classification))
             if not relevant_event:
                 answer["text"] = "Я не нашел событий под ваши условия, может быть переформулируете?"
+                answer["status"] = "none_event"
                 return answer
             answer["text"] = relevant_event.title.capitalize()
             answer["url"] = relevant_event.url
             answer["img"] = relevant_event.image
+            answer["status"] = "one_event"
             return answer
 
         answer["text"] = "Шестеренки за болты забежали, попробуйте еще раз"
