@@ -1,6 +1,6 @@
 import sqlalchemy
 import pickle
-from Model.Base_class_sql_alchemy import Base
+from Base_class_sql_alchemy import Base
 
 
 class Event(Base):
