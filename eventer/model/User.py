@@ -6,14 +6,16 @@ class User(Base):
     __tablename__ = 'users'
 
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    _telegram_id = sqlalchemy.Column(sqlalchemy.Integer)
+    _telegram_id = sqlalchemy.Column(sqlalchemy.String(50))
     _name = sqlalchemy.Column(sqlalchemy.String(50))
     _last_queue_events_str = sqlalchemy.Column(sqlalchemy.String(2000))  # Here we save sorted by relevance list of events from last request in string format
 
     def __init__(self, telegram_id=None, name=""):
-        self._telegram_id = telegram_id
+        print("User:__init__(): enter")
+        self.telegram_id = telegram_id
         self._name = name
-        self._last_queue_events_str = ""
+        self.last_queue_events = []
+        print("User:__init__(): telegram_id: " + self.telegram_id)
 
     def __repr__(self):
         return "<User _id: {}, " \
@@ -27,6 +29,14 @@ class User(Base):
     @property
     def user_id(self):
         return self._id
+
+    @property
+    def telegram_id(self):
+        return self._telegram_id
+
+    @telegram_id.setter
+    def telegram_id(self, value):
+        self._telegram_id = str(value)
 
     @property
     def last_queue_events(self):
@@ -43,8 +53,7 @@ class User(Base):
         for i in range(len(array)):
             print(i)
             array[i] = int(array[i])
-        # TODO: test
-        print("геттер отработал, значение: " + str(array))
+        print("User:last_queue_events getter: value: " + str(array)[0:20])
         return array
 
     @last_queue_events.setter
@@ -64,9 +73,10 @@ class User(Base):
         for item in queue:
             final_string += str(item) + "|"
         final_string = final_string[:-1]  # Remove last symbol "|"
+        # TODO: add protection from string more than 2000 symbols
+        print("User:last_queue_events setter: length value is " + str(len(final_string)))
         self._last_queue_events_str = final_string
-        # TODO: test
-        print("сеттер отработал, значение: " + self._last_queue_events_str)
+        print("User:last_queue_events setter: value: " + self._last_queue_events_str)
 
     def delete_previous_event_from_queue(self):
         list_of_events = self.last_queue_events
@@ -74,4 +84,4 @@ class User(Base):
         self.last_queue_events = list_of_events
 
     def clear_last_queue_events(self):
-        self._last_queue_events_str = ""
+        self.last_queue_events = []

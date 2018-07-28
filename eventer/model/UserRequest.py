@@ -1,5 +1,6 @@
 import apiai
 import json
+import datetime
 from Event import Event
 from User import User
 from Rating import Rating
@@ -32,18 +33,19 @@ class UserRequest:
         answer = {"intent": self.intent}
 
         # TODO: test
-        print("Интент: " + str(self.intent) + " Сообщение: " + self.user_message_text)
+        print("UserRequest:get_answer(): enter, intent: " + str(self.intent) + " message: " + self.user_message_text)
 
         if self.intent == 'Greeting':
             answer["text"] = "Привет, дорогой друг! Какие мероприятия тебя интересуют?"
+            answer["status"] = "none_event"
             return answer
 
         if self.intent == 'Find events':
             target_categories = self.get_categories_for_type_of_action(self.result_of_classification['type-of-action'])
-            target_date = self.result_of_classification['date']
+            start_timestamp, finish_timestamp = self.get_required_time_period()
             # TODO: test
-            print(str(self.result_of_classification))
-            relevant_events = self.get_sorted_events_for_conditions(target_date, target_categories)
+            print("UserRequest:get_answer(): intent = Find events, result of classification: " + str(self.result_of_classification))
+            relevant_events = self.get_sorted_events_for_conditions(start_timestamp, finish_timestamp, target_categories)
             if not relevant_events:
                 answer["text"] = "Я не нашел событий под эти условия, давайте переформулируем?"
                 answer["status"] = "none_event"
@@ -191,31 +193,95 @@ class UserRequest:
         }
         return set(type_of_action_dictionary.get(type_of_action, []))
 
+    def get_required_time_period(self):
+        print("UserRequest:get_required_time_period(): enter")
 
-    def get_events_for_conditions(self, date, categories):
+        # Manage with dates
+        if self.result_of_classification['date_period']:
+            dates = self.result_of_classification['date_period'].split("/")
+            start_date = datetime.datetime.strptime(dates[0], "%Y-%m-%d")  # '2018-07-28/2018-07-29'
+            finish_date = datetime.datetime.strptime(dates[1], "%Y-%m-%d")  # '2018-07-28/2018-07-29'
+        elif self.result_of_classification['date']:
+            start_date = datetime.datetime.strptime(self.result_of_classification['date'], "%Y-%m-%d")  # '2018-07-28'
+            finish_date = start_date
+        elif self.result_of_classification['time_period']:
+            start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)  # begin of current date
+            finish_date = start_date
+        else:
+            start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month,datetime.datetime.now().day)  # begin of current date
+            finish_date = start_date + datetime.timedelta(weeks=4)
+
+        # Manage with time
+        if self.result_of_classification['date_period']:
+            start_timestamp = start_date.timestamp()
+            finish_timestamp = (finish_date + datetime.timedelta(hours=23, minutes=59)).timestamp()
+        elif self.result_of_classification['time_period']:
+            times = self.result_of_classification['time_period'].split("/")  # '16:00:00/23:59:00'
+            start_times = times[0].split(":")  # '16:00:00'
+            finish_times = times[1].split(":")  # '23:59:00'
+            start_time_delta = datetime.timedelta(hours=int(start_times[0]), minutes=int(start_times[1]), seconds=int(start_times[2]))
+            finish_time_delta = datetime.timedelta(hours=int(finish_times[0]), minutes=int(finish_times[1]), seconds=int(finish_times[2]))
+            start_timestamp = (start_date + start_time_delta).timestamp()
+            finish_timestamp = (finish_date + finish_time_delta).timestamp()
+        else:
+            start_timestamp = start_date.timestamp()
+            finish_timestamp = (finish_date + datetime.timedelta(hours=23, minutes=59)).timestamp()
+
+        # Correction for current time
+        start_timestamp, finish_timestamp = self._time_correction_for_current_time(start_timestamp=start_timestamp,
+                                                                                   finish_timestamp=finish_timestamp)
+        print("UserRequest:get_required_time_period(): start_timestamp: " + str(start_timestamp) + " finish_timestamp: " + str(finish_timestamp))
+        return int(start_timestamp), int(finish_timestamp)
+
+    @staticmethod
+    def _time_correction_for_current_time(start_timestamp=0.0, finish_timestamp=0.0):
+        """
+        Start time has to be more than current server time.
+        If finish time least than current time, than we will take next 24 hours.
+        :param start_timestamp:
+        :param finish_timestamp:
+        :return:
+        """
+        if start_timestamp < (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp(): # server time is least for 3 hours than real moscow time
+            start_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp()
+        if finish_timestamp < (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp():
+            finish_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=23, minutes=59)).timestamp()
+        return start_timestamp, finish_timestamp
+
+    def get_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
         """
         Return set of events that is fitting for user request by category, date and other conditions (NOT SORTED BY RELEVANCE)!!!
-        :param date:
+        :param start_timestamp:
+        :param finish_timestamp:
         :param categories:
         :return: set of Events
         """
+        print("UserRequest:get_events_for_conditions(): enter")
         relevant_events = set()
         try:
             for category in categories:
-                relevant_events.update(self.session.query(Event).filter(Event._categories.like("%" + category + "%")).all())
+                relevant_events.update(self.session.query(Event).filter(
+                    Event._categories.like("%" + category + "%"),
+                    Event._start_time >= start_timestamp,
+                    Event._start_time <= finish_timestamp
+                ).all())
         except Exception as e:
             print(str(e))
-
+            return set()
+        print("UserRequest:get_events_for_conditions(): relevant_events: " + str(relevant_events)[0:20])
         return relevant_events
 
-    def get_sorted_events_for_conditions(self, date, categories):
+    def get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
         """
         Return sorted list of relevant events that is fitting for user request
-        :param date:
+        :param start_timestamp:
+        :param finish_timestamp:
         :param categories:
         :return: sorted list of Events
         """
-        relevant_events = self.get_events_for_conditions(date,categories)
+        print("UserRequest:get_sorted_events_for_conditions(): enter")
+        relevant_events = self.get_events_for_conditions(start_timestamp, finish_timestamp, categories)
+        print("UserRequest:get_sorted_events_for_conditions(): relevant_events: " + str(list(relevant_events))[0:20])
         return list(relevant_events)
 
     @staticmethod

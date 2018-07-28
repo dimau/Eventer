@@ -70,6 +70,10 @@ class Event(Base):
         return self._title
 
     @property
+    def id_kudago(self):
+        return self._id_kudago
+
+    @property
     def categories(self):
         # TODO: refactor automatically convert from string to set and delete function convert_from_set_to_string
         return self._categories
@@ -81,6 +85,14 @@ class Event(Base):
     @property
     def image(self):
         return self._image
+
+    @property
+    def start_time(self):
+        return self._start_time
+
+    @property
+    def duplicate_source_id(self):
+        return self._duplicate_source_id
 
     @property
     def duplicate_id(self):

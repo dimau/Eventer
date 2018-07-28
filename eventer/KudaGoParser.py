@@ -211,15 +211,13 @@ class KudaGoParser:
             if item['duplicate_source_id'] == "" or item['duplicate_source_id'] in handled_duplicate_source_id:
                 continue
             all_duplicates = session.query(Event).filter(Event._duplicate_source_id == item['duplicate_source_id']).all()
-            latest_event_id = sorted(all_duplicates, key=lambda x: x._start_time, reverse=True)[0].event_id
+            latest_event_id = sorted(all_duplicates, key=lambda x: x.start_time, reverse=True)[0].event_id
             for event in all_duplicates:
                 event.duplicate_id = latest_event_id
                 event.prepare_for_write_to_db()
                 session.add(event)
             handled_duplicate_source_id.append(item['duplicate_source_id'])
         session.commit()
-
-        print(events_collection_normalized)
         return
 
 

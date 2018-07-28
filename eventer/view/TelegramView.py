@@ -21,6 +21,14 @@ class TelegramView:
 
     @staticmethod
     def get_buttons_for_message(data_for_answer):
+        """
+        Return object with buttons for message
+        status:
+            none_event - other type of messages
+            one_event - message about one event where user will have opportunity to chose like or dislike
+        :param data_for_answer:
+        :return:
+        """
         not_like_button = KeyboardButton("\U0001F44E")
         like_button = KeyboardButton("\U0001F44D")
         favorites_button = KeyboardButton("Избранное")
