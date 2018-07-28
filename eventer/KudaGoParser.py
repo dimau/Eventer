@@ -48,7 +48,7 @@ class KudaGoParser:
 
             # Список событий отсортирован по убыванию id, если в новой выборке есть хотя бы 1 событие,
             # которое уже есть в базе, то дальше перебирать страницы нет смысла
-            if old_event_in_collection or page_number == 5:
+            if old_event_in_collection or page_number == 2:
                 break
 
             page_number = page_number + 1
@@ -145,6 +145,7 @@ class KudaGoParser:
             event['start_time'] = date_of_event['start']
             event['finish_time'] = date_of_event['end']
             events.append(event)
+            print("*********************************\n" + str(event))
         return events
 
     @staticmethod
@@ -201,7 +202,6 @@ class KudaGoParser:
         # Запись всех новых событий в базу данных
         for item in events_collection_normalized:
             event = Event(item)
-            event.prepare_for_write_to_db()
             session.add(event)
         session.commit()
 
@@ -214,8 +214,8 @@ class KudaGoParser:
             latest_event_id = sorted(all_duplicates, key=lambda x: x.start_time, reverse=True)[0].event_id
             for event in all_duplicates:
                 event.duplicate_id = latest_event_id
-                event.prepare_for_write_to_db()
                 session.add(event)
+                print(" ******************************** \n" + str(event))
             handled_duplicate_source_id.append(item['duplicate_source_id'])
         session.commit()
         return

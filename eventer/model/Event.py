@@ -1,9 +1,10 @@
 import sqlalchemy
 import pickle
 from Base_class_sql_alchemy import Base
+from FormattingDataRepresentation import FormattingDataRepresentation
 
 
-class Event(Base):
+class Event(Base, FormattingDataRepresentation):
 
     __tablename__ = 'events'
 
@@ -29,7 +30,7 @@ class Event(Base):
         self._categories_kudago = source_dict.get('categories_kudago', '')
         self._tags_kudago = pickle.dumps(source_dict.get('tags_kudago', ''))
         self._url = source_dict.get('url', '')
-        self._categories = source_dict.get('categories', set())
+        self._categories = self.convert_from_iterator_to_string(source_dict.get('categories', set()))
         self._image = source_dict.get('image', '')
         self._start_time = source_dict.get('start_time', 0)
         self._finish_time = source_dict.get('finish_time', 0)
@@ -101,26 +102,6 @@ class Event(Base):
     @duplicate_id.setter
     def duplicate_id(self, value):
         self._duplicate_id = int(value)
-
-    def prepare_for_write_to_db(self):
-        """
-        Метод конвертирует поля объекта в формат, пригодный для сохранения в базу данных
-        :return:
-        """
-        self._categories = self.convert_from_set_to_string(self._categories)
-
-    @staticmethod
-    def convert_from_set_to_string(source_set):
-        """
-        Метод конвертирует множество в строку в заданном формате для сохранения в БД - все элементы через |
-        :param source_set:
-        :return:
-        """
-        final_string = ""
-        for element in source_set:
-            final_string += element
-            final_string += " | "
-        return final_string
 
 """
 Все категории событий

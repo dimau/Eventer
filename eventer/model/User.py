@@ -1,8 +1,9 @@
 import sqlalchemy
 from Base_class_sql_alchemy import Base
+from FormattingDataRepresentation import FormattingDataRepresentation
 
 
-class User(Base):
+class User(Base, FormattingDataRepresentation):
     __tablename__ = 'users'
 
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -64,19 +65,10 @@ class User(Base):
         :param queue: We are waiting for a list of integers here (event id-s)
         :return:
         """
-        # Special work for empty lists
-        if len(queue) == 0:
-            self._last_queue_events_str = ""
-            return
-        # Construction string from list, we have to convert values from integer to string
-        final_string = ""
-        for item in queue:
-            final_string += str(item) + "|"
-        final_string = final_string[:-1]  # Remove last symbol "|"
+        self._last_queue_events_str = self.convert_from_iterator_to_string(queue)
         # TODO: add protection from string more than 2000 symbols
-        print("User:last_queue_events setter: length value is " + str(len(final_string)))
-        self._last_queue_events_str = final_string
-        print("User:last_queue_events setter: value: " + self._last_queue_events_str)
+        print("User:last_queue_events setter: length value is " + str(len(self._last_queue_events_str)))
+        print("User:last_queue_events setter: value: " + self._last_queue_events_str[0:20])
 
     def delete_previous_event_from_queue(self):
         list_of_events = self.last_queue_events
