@@ -1,6 +1,8 @@
 # -*- coding: utf-8 -*-
 
+import time
 import requests
+import copy
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from Event import Event
@@ -38,8 +40,8 @@ class KudaGoParser:
                 if item['id'] <= int(last_handled_id_from_base):
                     old_event_in_collection = True
                     continue
-                event = self.item_parser(item)
-                events_collection_final.append(event)
+                events = self.item_parser(item)
+                events_collection_final += events
 
             # Новый набор событий с сайта записываем в базу
             self.write_events_to_db(events_collection_final)
@@ -50,6 +52,9 @@ class KudaGoParser:
                 break
 
             page_number = page_number + 1
+
+            # Add sleep to don't ddos attack source server
+            time.sleep(1)
 
     @staticmethod
     def get_last_handled_id():
@@ -115,21 +120,32 @@ class KudaGoParser:
         """
         Достает поля, нужные для сохранения события в БД
         :param item:
-        :return:
+        :return: return list of events, in most cases it will contain only one item, but if event has several dates,
+        every date will have its own event in list
         """
-        event = {}
-        event['id_kudago'] = item['id']
-        event['title'] = item['title']
-        event['description'] = item['description']
-        event['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
-        event['categories_kudago'] = item['categories'][0]
-        event['tags_kudago'] = item['tags']
-        event['categories'] = self.type_of_event_converter(item['categories'][0])
+        events = []
+        event_common_parameters = {}
+        event_common_parameters['id_kudago'] = item['id']
+        event_common_parameters['title'] = item['title']
+        event_common_parameters['description'] = item['description']
+        event_common_parameters['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
+        event_common_parameters['categories_kudago'] = item['categories'][0]
+        event_common_parameters['tags_kudago'] = item['tags']
+        event_common_parameters['categories'] = self.type_of_event_converter(item['categories'][0])
         if len(item['images']) > 0:
-            event['image'] = item['images'][0]['image']
+            event_common_parameters['image'] = item['images'][0]['image']
         else:
-            event['image'] = ""
-        return event
+            event_common_parameters['image'] = ""
+        if len(item['dates']) > 1:
+            event_common_parameters['duplicate_source_id'] = event_common_parameters['id_kudago']  # Пока положим сюда id из сайта источника - kuda go, после сохранения в базу нужно будет взять наш собственный индекс
+        else:
+            event_common_parameters['duplicate_source_id'] = ""
+        for date_of_event in item['dates']:
+            event = copy.deepcopy(event_common_parameters)
+            event['start_time'] = date_of_event['start']
+            event['finish_time'] = date_of_event['end']
+            events.append(event)
+        return events
 
     @staticmethod
     def type_of_event_converter(source_type_of_event):
@@ -182,11 +198,29 @@ class KudaGoParser:
 
     @staticmethod
     def write_events_to_db(events_collection_normalized):
+        # Запись всех новых событий в базу данных
         for item in events_collection_normalized:
             event = Event(item)
             event.prepare_for_write_to_db()
             session.add(event)
         session.commit()
+
+        # Assignment real id of last event for duplicates of this event with other dates
+        handled_duplicate_source_id = []
+        for item in events_collection_normalized:
+            if item['duplicate_source_id'] == "" or item['duplicate_source_id'] in handled_duplicate_source_id:
+                continue
+            all_duplicates = session.query(Event).filter(Event._duplicate_source_id == item['duplicate_source_id']).all()
+            latest_event_id = sorted(all_duplicates, key=lambda x: x._start_time, reverse=True)[0].event_id
+            for event in all_duplicates:
+                event.duplicate_id = latest_event_id
+                event.prepare_for_write_to_db()
+                session.add(event)
+            handled_duplicate_source_id.append(item['duplicate_source_id'])
+        session.commit()
+
+        print(events_collection_normalized)
+        return
 
 
 if __name__ == '__main__':

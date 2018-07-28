@@ -30,6 +30,10 @@ class User(Base):
 
     @property
     def last_queue_events(self):
+        """
+        Getter for property last_queue_events
+        :return:
+        """
         # Empty string = empty list
         if self._last_queue_events_str == "":
             return []

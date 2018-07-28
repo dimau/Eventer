@@ -16,6 +16,10 @@ class Event(Base):
     _url = sqlalchemy.Column(sqlalchemy.String(500))
     _categories = sqlalchemy.Column(sqlalchemy.String(1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
     _image = sqlalchemy.Column(sqlalchemy.String(200))
+    _start_time = sqlalchemy.Column(sqlalchemy.Integer)
+    _finish_time = sqlalchemy.Column(sqlalchemy.Integer)
+    _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
+    _duplicate_id = sqlalchemy.Column(sqlalchemy.Integer)
 
     def __init__(self, source_dict):
 
@@ -27,22 +31,35 @@ class Event(Base):
         self._url = source_dict.get('url', '')
         self._categories = source_dict.get('categories', set())
         self._image = source_dict.get('image', '')
+        self._start_time = source_dict.get('start_time', 0)
+        self._finish_time = source_dict.get('finish_time', 0)
+        self._duplicate_source_id = source_dict.get('duplicate_source_id', '')
+        self._duplicate_id = source_dict.get('duplicate_id', 0)
 
     def __repr__(self):
-        return "<Event title: {}, " \
-                "description: {}, " \
-                "id_kudago: {}, " \
-                "categories_kudago: {}, " \
-                "tags_kudago: {}, " \
-                "url: {}, " \
-                "categories: {}>".format(self._title,
-                                        self._description,
-                                        self._id_kudago,
-                                        self._categories_kudago,
-                                        self._tags_kudago,
-                                        self._url,
-                                        self._categories,
-                                        self._image)
+        return '<Event title: {}, ' \
+               'description: {}, ' \
+               'id_kudago: {}, ' \
+               'categories_kudago: {}, ' \
+               'tags_kudago: {}, ' \
+               'url: {}, ' \
+               'categories: {},' \
+               'image: {},' \
+               'start_time: {},' \
+               'finish_time: {},' \
+               'duplicate_source_id: {},' \
+               'duplicate_id: {}>'.format(self._title,
+                                          self._description,
+                                          self._id_kudago,
+                                          self._categories_kudago,
+                                          self._tags_kudago,
+                                          self._url,
+                                          self._categories,
+                                          self._image,
+                                          self._start_time,
+                                          self._finish_time,
+                                          self._duplicate_source_id,
+                                          self._duplicate_id)
 
     @property
     def event_id(self):
@@ -54,6 +71,7 @@ class Event(Base):
 
     @property
     def categories(self):
+        # TODO: refactor automatically convert from string to set and delete function convert_from_set_to_string
         return self._categories
 
     @property
@@ -63,6 +81,14 @@ class Event(Base):
     @property
     def image(self):
         return self._image
+
+    @property
+    def duplicate_id(self):
+        return self._duplicate_id
+
+    @duplicate_id.setter
+    def duplicate_id(self, value):
+        self._duplicate_id = int(value)
 
     def prepare_for_write_to_db(self):
         """
