@@ -33,7 +33,7 @@ class TelegramView:
         like_button = KeyboardButton("\U0001F44D")
         favorites_button = KeyboardButton("Избранное")
         all_categories_button = KeyboardButton("Все категории")
-        if data_for_answer["status"] == "one_event":
+        if data_for_answer.get("status", "unknown") == "one_event":
             all_buttons = ReplyKeyboardMarkup([[like_button, not_like_button], [favorites_button, all_categories_button]],
                                               resize_keyboard=True,
                                               one_time_keyboard=True)

@@ -1,11 +1,19 @@
 # -*- coding: utf-8 -*-
 
+# Add directories to PYTHONPATH for cron
+import sys
+sys.path.append('/home/dimau777/projects/eventer/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/model/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/utility/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/view/')
 import time
 import requests
 import copy
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from Event import Event
+
 
 # Параметры для конфиг файла
 user_for_mysql = "eventer"
@@ -48,7 +56,7 @@ class KudaGoParser:
 
             # Список событий отсортирован по убыванию id, если в новой выборке есть хотя бы 1 событие,
             # которое уже есть в базе, то дальше перебирать страницы нет смысла
-            if old_event_in_collection or page_number == 2:
+            if old_event_in_collection or page_number == 100:
                 break
 
             page_number = page_number + 1

@@ -94,7 +94,8 @@ class UserRequest:
             self.session.commit()
             return answer
 
-        answer["text"] = "Шестеренки за болты забежали, попробуйте еще раз"
+        answer["text"] = "Что-то я вас не понял, так какие события вас интересуют и когда?"
+        answer["status"] = "none_event"
         return answer
 
 
@@ -258,22 +259,25 @@ class UserRequest:
         """
         print("UserRequest:get_events_for_conditions(): enter")
         relevant_events = set()
-        try:
+        if len(categories) != 0:  # if user writes something about categories
             for category in categories:
                 relevant_events.update(self.session.query(Event).filter(
                     Event._categories.like("%" + category + "%"),
                     Event._start_time >= start_timestamp,
                     Event._start_time <= finish_timestamp
                 ).all())
-        except Exception as e:
-            print(str(e))
-            return set()
+        else:  # if user doesn't write something about categories
+            relevant_events.update(self.session.query(Event).filter(
+                Event._start_time >= start_timestamp,
+                Event._start_time <= finish_timestamp
+            ).all())
         print("UserRequest:get_events_for_conditions(): relevant_events: " + str(relevant_events)[0:20])
         return relevant_events
 
     def get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
         """
         Return sorted list of relevant events that is fitting for user request
+        MAXIMUM 100 events per time
         :param start_timestamp:
         :param finish_timestamp:
         :param categories:
@@ -282,7 +286,7 @@ class UserRequest:
         print("UserRequest:get_sorted_events_for_conditions(): enter")
         relevant_events = self.get_events_for_conditions(start_timestamp, finish_timestamp, categories)
         print("UserRequest:get_sorted_events_for_conditions(): relevant_events: " + str(list(relevant_events))[0:20])
-        return list(relevant_events)
+        return list(relevant_events)[0:100]  # we will return for one time only 100 most relevant events
 
     @staticmethod
     def get_id_for_events_in_iterator(iterator):

@@ -28,7 +28,7 @@ class Event(Base, FormattingDataRepresentation):
         self._description = source_dict.get('description', '')
         self._id_kudago = source_dict.get('id_kudago', '')
         self._categories_kudago = source_dict.get('categories_kudago', '')
-        self._tags_kudago = pickle.dumps(source_dict.get('tags_kudago', ''))
+        self._tags_kudago = self.convert_from_iterator_to_string(source_dict.get('tags_kudago', ''))
         self._url = source_dict.get('url', '')
         self._categories = self.convert_from_iterator_to_string(source_dict.get('categories', set()))
         self._image = source_dict.get('image', '')
