@@ -75,11 +75,13 @@ def text_message(bot, update_from_telegram):
     text_answer = TelegramView.make_text_answer_from_data(data_for_answer)
     print(" текст: " + text_answer)
     buttons_answer = TelegramView.get_buttons_for_message(data_for_answer)
+    image_preview = TelegramView.is_not_allowed_images_preview(data_for_answer)
     print("чат ид: " + str(update_from_telegram.message.chat_id) + " текст: " + text_answer)
     bot.send_message(chat_id=update_from_telegram.message.chat_id,
                      parse_mode='HTML',
                      text=text_answer,
-                     reply_markup=buttons_answer)
+                     reply_markup=buttons_answer,
+                     disable_web_page_preview=image_preview)
 
 
 # Создаем обработчики событий для телеграма

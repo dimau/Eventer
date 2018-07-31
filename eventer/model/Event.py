@@ -1,6 +1,6 @@
 import sqlalchemy
-import pickle
 from Base_class_sql_alchemy import Base
+from sqlalchemy.orm import relationship
 from FormattingDataRepresentation import FormattingDataRepresentation
 
 
@@ -21,6 +21,8 @@ class Event(Base, FormattingDataRepresentation):
     _finish_time = sqlalchemy.Column(sqlalchemy.Integer)
     _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
     _duplicate_id = sqlalchemy.Column(sqlalchemy.Integer)
+
+    ratings = relationship("Rating", back_populates="event")
 
     def __init__(self, source_dict):
 

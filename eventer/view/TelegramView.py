@@ -1,8 +1,8 @@
-# from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from telegram import ReplyKeyboardMarkup, KeyboardButton
+from AbstractView import AbstractView
 
 
-class TelegramView:
+class TelegramView(AbstractView):
 
     @staticmethod
     def _simple_text_message(message_data):
@@ -10,14 +10,48 @@ class TelegramView:
 
     @staticmethod
     def make_text_answer_from_data(data_for_answer):
+        print("TelegramView:make_text_answer_from_data(): enter")
+        text_answer = ""
+        if "datetime" in data_for_answer.keys():
+            text_answer += AbstractView.convert_timestamp_to_date_and_time(data_for_answer["datetime"])
+        if "img" in data_for_answer.keys():
+            text_answer += "<a href='" + data_for_answer["img"] + "' target='_blank'>.</a>"
+        if "url" in data_for_answer.keys():
+            text_answer += "\n<a href='" + data_for_answer["url"] + "' target='_blank'>" + data_for_answer.get("text", "") + "</a>"
+        else:
+            text_answer += data_for_answer.get("text", "")
+        if "list_of_events" in data_for_answer.keys():
+            for event in data_for_answer["list_of_events"]:
+                text_answer += "\n\n\U0001F31F" + \
+                               " <a href='" + event.url + \
+                               "' target='_blank'>" + \
+                               event.title.capitalize() + \
+                               "</a> " + \
+                               str(AbstractView.convert_timestamp_to_date_and_time(event.start_time))
+        return text_answer
+
+    """
+    @staticmethod
+    def make_text_answer_from_data(data_for_answer):
+        print("TelegramView:make_text_answer_from_data(): enter")
         text_answer = ""
         text_answer += data_for_answer.get("text", "")
         if "img" in data_for_answer.keys():
             text_answer += "<a href='" + data_for_answer["img"] + "' target='_blank'>.</a>"
+        if "datetime" in data_for_answer.keys():
+            text_answer += " - " + AbstractView.convert_timestamp_to_date_and_time(data_for_answer["datetime"])
         if "url" in data_for_answer.keys():
-            text_answer += """
-<a href='""" + data_for_answer["url"] + "' target='_blank'>Подробнее про событие</a>"
+            text_answer += "\n<a href='" + data_for_answer["url"] + "' target='_blank'>Подробнее про событие</a>"
+        if "list_of_events" in data_for_answer.keys():
+            for event in data_for_answer["list_of_events"]:
+                text_answer += "\n\n\U0001F31F" + \
+                               " <a href='" + event.url + \
+                               "' target='_blank'>" + \
+                               event.title.capitalize() + \
+                               "</a> " + \
+                               str(AbstractView.convert_timestamp_to_date_and_time(event.start_time))
         return text_answer
+    """
 
     @staticmethod
     def get_buttons_for_message(data_for_answer):
@@ -42,3 +76,16 @@ class TelegramView:
                                               resize_keyboard=True,
                                               one_time_keyboard=True)
         return all_buttons
+
+    @staticmethod
+    def is_not_allowed_images_preview(data_for_answer):
+        """
+        Return flag that we have to allow to show image preview inside message or not
+        :param data_for_answer:
+        :return:
+        """
+        if 'img' in data_for_answer.keys():  # only in this key we can show image preview
+            return False
+        return True
+
+

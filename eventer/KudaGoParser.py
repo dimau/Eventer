@@ -8,6 +8,7 @@ sys.path.append('/home/dimau777/projects/eventer/eventer/model/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/utility/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/view/')
 import time
+import datetime
 import requests
 import copy
 import sqlalchemy
@@ -51,12 +52,16 @@ class KudaGoParser:
                 events = self.item_parser(item)
                 events_collection_final += events
 
+            # Remove events which have finished in past
+            events_collection_final = self.remove_already_finished_events(events_collection_final)
+            print("KudaGoParser:main(): page number: " + str(page_number) + " new events: " + str(len(events_collection_final)))
+
             # Новый набор событий с сайта записываем в базу
             self.write_events_to_db(events_collection_final)
 
             # Список событий отсортирован по убыванию id, если в новой выборке есть хотя бы 1 событие,
             # которое уже есть в базе, то дальше перебирать страницы нет смысла
-            if old_event_in_collection or page_number == 100:
+            if old_event_in_collection or page_number == 500:
                 break
 
             page_number = page_number + 1
@@ -80,6 +85,7 @@ class KudaGoParser:
     def make_url(page):
         """
         Собирает урл для получения страницы со списком мероприятий
+        Url example: https://kudago.com/public-api/v1.4/events/?lang=ru&page_size=10&order_by=-id&text_format=html&location=msk&is_free=0&fields=id,dates,title,short_title,slug,place,description,body_text,location,categories, tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&page=1
         :return:
         """
         url_template = 'https://kudago.com/public-api/v1.4/events/?' \
@@ -95,12 +101,11 @@ class KudaGoParser:
         url = url_template % {
             'lang': 'ru',
             'page_size': '10',
-            'order_by': "-id",
+            'order_by': "-publication_date",
             'text_format': 'html',
             'location': 'msk',
             'is_free': '0',
-            'fields': 'id,dates,title,short_title,slug,place,description,body_text,location,categories, \
-                tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants',
+            'fields': 'id,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants',
             'page': page
         }
         return url
@@ -112,8 +117,9 @@ class KudaGoParser:
         :param url:
         :return:
         """
-        req = requests.get(url)
-        return req
+        # req = requests.get(url)
+        with requests.get(url) as req:
+            return req
 
     @staticmethod
     def list_parser(url_content):
@@ -204,6 +210,16 @@ class KudaGoParser:
             "business-events": ["business-events"]
         }
         return set(type_of_event_dictionary.get(source_type_of_event, []))
+
+    @staticmethod
+    def remove_already_finished_events(events):
+        result = []
+        # TODO: refactoring 3 - will have be in config file
+        current_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp() # server time is least for 3 hours than real moscow time
+        for event in events:
+            if event['finish_time'] > current_timestamp:
+                result.append(event)
+        return result
 
     @staticmethod
     def write_events_to_db(events_collection_normalized):

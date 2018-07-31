@@ -53,6 +53,7 @@ class UserRequest:
                 return answer
 
             answer["text"] = relevant_events[0].title.capitalize()
+            answer['datetime'] = relevant_events[0].start_time
             answer["url"] = relevant_events[0].url
             answer["img"] = relevant_events[0].image
             answer["status"] = "one_event"
@@ -85,6 +86,7 @@ class UserRequest:
                 next_event_id = last_queue_events[1]
                 next_event = self.session.query(Event).filter(Event._id == next_event_id).first()
                 answer["text"] = next_event.title.capitalize()
+                answer['datetime'] = next_event.start_time
                 answer["url"] = next_event.url
                 answer["img"] = next_event.image
                 answer["status"] = "one_event"
@@ -92,6 +94,23 @@ class UserRequest:
 
             # Save all changes to database
             self.session.commit()
+            return answer
+
+        if self.intent == 'Favorites':
+            # Code snippet for test, it can show ratings with like and their events ids
+            # all_liked_ratings = self.session.query(Rating).join(User).filter(User._id == self.user.user_id).filter(Rating._like == 1).all()
+            # print(str(all_liked_ratings))
+            all_favorites_events = self.session.query(Event).join(Rating).join(User)\
+                .filter(User._id == self.user.user_id)\
+                .filter(Rating._like == 1)\
+                .filter(Event._start_time >= self._get_current_utc_timestamp())\
+                .order_by(Event._start_time).all()
+            answer["list_of_events"] = all_favorites_events
+            if len(answer['list_of_events']) > 0:
+                answer["text"] = "Вот список мероприятий, которые тебе понравились"
+            else:
+                answer["text"] = "Здесь будет список мероприятий, которые тебе понравились"
+            answer["status"] = "list_of_events"
             return answer
 
         answer["text"] = "Что-то я вас не понял, так какие события вас интересуют и когда?"
@@ -231,6 +250,11 @@ class UserRequest:
         # Correction for current time
         start_timestamp, finish_timestamp = self._time_correction_for_current_time(start_timestamp=start_timestamp,
                                                                                    finish_timestamp=finish_timestamp)
+
+        # Correction for local time
+        start_timestamp, finish_timestamp = self._time_correction_for_local_time(start_timestamp=start_timestamp,
+                                                                                 finish_timestamp=finish_timestamp)
+
         print("UserRequest:get_required_time_period(): start_timestamp: " + str(start_timestamp) + " finish_timestamp: " + str(finish_timestamp))
         return int(start_timestamp), int(finish_timestamp)
 
@@ -243,11 +267,23 @@ class UserRequest:
         :param finish_timestamp:
         :return:
         """
+        # TODO: refactoring 3 - will have be in config file
         if start_timestamp < (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp(): # server time is least for 3 hours than real moscow time
             start_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp()
         if finish_timestamp < (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp():
             finish_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=23, minutes=59)).timestamp()
         return start_timestamp, finish_timestamp
+
+    @staticmethod
+    def _time_correction_for_local_time(start_timestamp=0.0, finish_timestamp=0.0):
+        """
+        User tell us time as his local time, but events id database are saved with UTC timestamp
+        this method convert required user local time to UTC time for work with database
+        :param start_timestamp:
+        :param finish_timestamp:
+        :return:
+        """
+        return start_timestamp - 3600 * 3, finish_timestamp - 3600 * 3  # only for Moscow timezone
 
     def get_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
         """
@@ -294,3 +330,7 @@ class UserRequest:
         for item in iterator:
             list_of_id.append(item.event_id)
         return list_of_id
+
+    @staticmethod
+    def _get_current_utc_timestamp():
+        return int(datetime.datetime.now().timestamp())  # on our server UTC local time

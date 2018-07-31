@@ -1,5 +1,6 @@
 import sqlalchemy
 from Base_class_sql_alchemy import Base
+from sqlalchemy.orm import relationship
 from FormattingDataRepresentation import FormattingDataRepresentation
 
 
@@ -10,6 +11,8 @@ class User(Base, FormattingDataRepresentation):
     _telegram_id = sqlalchemy.Column(sqlalchemy.String(50))
     _name = sqlalchemy.Column(sqlalchemy.String(50))
     _last_queue_events_str = sqlalchemy.Column(sqlalchemy.String(2000))  # Here we save sorted by relevance list of events from last request in string format
+
+    ratings = relationship("Rating", back_populates="user")
 
     def __init__(self, telegram_id=None, name=""):
         print("User:__init__(): enter")
