@@ -9,7 +9,14 @@ from Rating import Rating
 class UserRequest:
 
 
-    def __init__(self, user_message_text="", session_with_db=None, user=None):
+    def __init__(self, user_message_text="", session_with_db=None, user=None, type="text_message"):
+        """
+        Constructor for class
+        :param user_message_text:
+        :param session_with_db:
+        :param user:
+        :param type: start = пользователь добавил бота; text_message - обычное текстовое сообщение
+        """
 
         # Исходные данные - текстовое сообщение, объект сессии с БД и токен для доступа к dialogflow
         self.user_message_text = user_message_text
@@ -113,6 +120,28 @@ class UserRequest:
             answer["status"] = "list_of_events"
             return answer
 
+        if self.intent == 'Help':
+            # Check sign (black) = \u2713
+            answer["text"] = "Я могу подсказать, куда сходить в Москве :)\n" \
+                             "Скажи, какая категория событий тебе интересна и на какую дату?\n\n" \
+                             "Я знаю про вот такие категории:\n" \
+                             "\U0001F4CC Концерты\n" \
+                             "\U0001F4CC Театр\n" \
+                             "\U0001F4CC Образовательные мероприятия\n" \
+                             "\U0001F4CC Вечеринки\n" \
+                             "\U0001F4CC Спортивные мероприятия\n" \
+                             "\U0001F4CC Выставки\n" \
+                             "\U0001F4CC Экскурсии\n" \
+                             "\U0001F4CC Фестивали\n" \
+                             "\U0001F4CC Кино\n" \
+                             "\U0001F4CC Игры\n" \
+                             "\U0001F4CC Быстрые свидания\n" \
+                             "\U0001F4CC Занятия танцами\n" \
+                             "\U0001F4CC Детские мероприятия\n" \
+                             "\U0001F4CC Стендап шоу"
+            answer["status"] = "none_event"
+            return answer
+
         answer["text"] = "Что-то я вас не понял, так какие события вас интересуют и когда?"
         answer["status"] = "none_event"
         return answer
@@ -179,15 +208,13 @@ class UserRequest:
             "cinema": ["cinema"],
             "fashion": ["fashion"],
             "show": ["show"],
-            "holiday": ["holiday"],
             "social-activity": ["social-activity"],
-            "yarmarki-razvlecheniya-yarmarki": ["yarmarki-razvlecheniya-yarmarki"],
             "games": ["games"],
             "night": ["night"],
             "meeting": ["meeting"],
             "speed-dating": ["speed-dating"],
             "flashmob": ["flashmob"],
-            "masquerade": ["masquerade"],
+            "masquerade": ["masquerade", "festival"],
             "romance": ["romance"],
             "dance-trainings": ["dance-trainings"],
             "evening": ["evening"],
@@ -196,7 +223,6 @@ class UserRequest:
             "sale": ["sale"],
             "shopping": ["shopping"],
             "quest": ["quest"],
-            "ball": ["ball"],
             "yoga": ["yoga"],
             "presentation": ["presentation"],
             "magic": ["magic"],

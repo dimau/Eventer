@@ -63,7 +63,7 @@ class TelegramView(AbstractView):
         :param data_for_answer:
         :return:
         """
-        not_like_button = KeyboardButton("\U0001F44E")
+        not_like_button = KeyboardButton("\U0001F44E")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
         like_button = KeyboardButton("\U0001F44D")
         favorites_button = KeyboardButton("Избранное")
         all_categories_button = KeyboardButton("Все категории")

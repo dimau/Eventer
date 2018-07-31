@@ -2,13 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8e1f9942-63e4-4c22-83f3-1c06e55ac1c9" name="Default" comment="">
-      <change afterPath="$PROJECT_DIR$/eventer/view/AbstractView.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/KudaGoParser.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/KudaGoParser.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eventer/model/Base_class_sql_alchemy.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/Base_class_sql_alchemy.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eventer/model/Event.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/Event.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eventer/model/Rating.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/Rating.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/eventer/model/User.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/User.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/model/UserRequest.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/UserRequest.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/telegram_bot.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/telegram_bot.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/view/TelegramView.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/view/TelegramView.py" afterDir="false" />
@@ -25,8 +19,8 @@
       <file leaf-file-name="KudaGoParser.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eventer/KudaGoParser.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="1479">
-              <caret line="87" column="15" lean-forward="true" selection-start-line="87" selection-start-column="15" selection-end-line="87" selection-end-column="15" />
+            <state relative-caret-position="671">
+              <caret line="196" column="29" lean-forward="true" selection-start-line="196" selection-start-column="29" selection-end-line="196" selection-end-column="29" />
             </state>
           </provider>
         </entry>
@@ -43,8 +37,8 @@
       <file leaf-file-name="Event.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="527">
-              <caret line="91" column="13" lean-forward="true" selection-start-line="91" selection-start-column="13" selection-end-line="91" selection-end-column="13" />
+            <state relative-caret-position="1054">
+              <caret line="128" column="26" selection-start-line="128" selection-start-column="26" selection-end-line="128" selection-end-column="26" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
@@ -52,11 +46,23 @@
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="telegram_bot.py" pinned="false" current-in-tab="false">
+      <file leaf-file-name="UserRequest.py" pinned="false" current-in-tab="false">
+        <entry file="file://$PROJECT_DIR$/eventer/model/UserRequest.py">
+          <provider selected="true" editor-type-id="text-editor">
+            <state relative-caret-position="221">
+              <caret line="13" column="29" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
+              <folding>
+                <element signature="e#0#12#0" expanded="true" />
+              </folding>
+            </state>
+          </provider>
+        </entry>
+      </file>
+      <file leaf-file-name="telegram_bot.py" pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/eventer/telegram_bot.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="595">
-              <caret line="74" column="47" selection-start-line="74" selection-start-column="47" selection-end-line="74" selection-end-column="47" />
+            <state relative-caret-position="272">
+              <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
               <folding>
                 <element signature="e#25#98#0" expanded="true" />
               </folding>
@@ -67,8 +73,8 @@
       <file leaf-file-name="TelegramView.py" pinned="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/eventer/view/TelegramView.py">
           <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="-272">
-              <caret line="14" column="48" lean-forward="true" selection-start-line="14" selection-start-column="48" selection-end-line="14" selection-end-column="48" />
+            <state relative-caret-position="544">
+              <caret line="65" column="143" selection-start-line="65" selection-start-column="143" selection-end-line="65" selection-end-column="143" />
               <folding>
                 <element signature="e#0#56#0" expanded="true" />
               </folding>
@@ -92,18 +98,6 @@
               <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file leaf-file-name="UserRequest.py" pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/eventer/model/UserRequest.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="357">
-              <caret line="21" column="61" lean-forward="true" selection-start-line="21" selection-start-column="61" selection-end-line="21" selection-end-column="61" />
-              <folding>
-                <element signature="e#0#12#0" expanded="true" />
               </folding>
             </state>
           </provider>
@@ -153,6 +147,7 @@
       <find>get_events_for_conditions</find>
       <find>convert_from_set_to_string</find>
       <find>datetime</find>
+      <find>holiday</find>
     </findStrings>
     <dirStrings>
       <dir>E:\projects\eventer</dir>
@@ -176,19 +171,19 @@
         <option value="$PROJECT_DIR$/telegram_bot.py" />
         <option value="$PROJECT_DIR$/eventer/utility/creation_db.py" />
         <option value="$PROJECT_DIR$/eventer/model/FormattingDataRepresentation.py" />
-        <option value="$PROJECT_DIR$/eventer/KudaGoParser.py" />
         <option value="$PROJECT_DIR$/eventer/model/Base_class_sql_alchemy.py" />
         <option value="$PROJECT_DIR$/eventer/model/User.py" />
         <option value="$PROJECT_DIR$/eventer/model/Rating.py" />
         <option value="$PROJECT_DIR$/eventer/model/Event.py" />
-        <option value="$PROJECT_DIR$/eventer/telegram_bot.py" />
         <option value="$PROJECT_DIR$/eventer/view/AbstractView.py" />
+        <option value="$PROJECT_DIR$/eventer/KudaGoParser.py" />
         <option value="$PROJECT_DIR$/eventer/view/TelegramView.py" />
+        <option value="$PROJECT_DIR$/eventer/telegram_bot.py" />
         <option value="$PROJECT_DIR$/eventer/model/UserRequest.py" />
       </list>
     </option>
   </component>
-  <component name="ProjectFrameBounds" extendedState="7">
+  <component name="ProjectFrameBounds" extendedState="6">
     <option name="x" value="518" />
     <option name="y" value="-8" />
     <option name="width" value="1400" />
@@ -635,37 +630,10 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/model/User.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="255">
-          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/eventer/model/Base_class_sql_alchemy.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="34">
           <caret line="2" lean-forward="true" selection-start-line="2" selection-end-line="2" />
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/telegram_bot.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="595">
-          <caret line="74" column="47" selection-start-line="74" selection-start-column="47" selection-end-line="74" selection-end-column="47" />
-          <folding>
-            <element signature="e#25#98#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/KudaGoParser.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="1479">
-          <caret line="87" column="15" lean-forward="true" selection-start-line="87" selection-start-column="15" selection-end-line="87" selection-end-column="15" />
         </state>
       </provider>
     </entry>
@@ -676,16 +644,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="527">
-          <caret line="91" column="13" lean-forward="true" selection-start-line="91" selection-start-column="13" selection-end-line="91" selection-end-column="13" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/eventer/view/AbstractView.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="102">
@@ -693,22 +651,59 @@
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/model/User.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="255">
+          <caret line="15" lean-forward="true" selection-start-line="15" selection-end-line="15" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/KudaGoParser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="671">
+          <caret line="196" column="29" lean-forward="true" selection-start-line="196" selection-start-column="29" selection-end-line="196" selection-end-column="29" />
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/eventer/view/TelegramView.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-272">
-          <caret line="14" column="48" lean-forward="true" selection-start-line="14" selection-start-column="48" selection-end-line="14" selection-end-column="48" />
+        <state relative-caret-position="544">
+          <caret line="65" column="143" selection-start-line="65" selection-start-column="143" selection-end-line="65" selection-end-column="143" />
           <folding>
             <element signature="e#0#56#0" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="1054">
+          <caret line="128" column="26" selection-start-line="128" selection-start-column="26" selection-end-line="128" selection-end-column="26" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
     <entry file="file://$PROJECT_DIR$/eventer/model/UserRequest.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="357">
-          <caret line="21" column="61" lean-forward="true" selection-start-line="21" selection-start-column="61" selection-end-line="21" selection-end-column="61" />
+        <state relative-caret-position="221">
+          <caret line="13" column="29" selection-start-line="13" selection-start-column="29" selection-end-line="13" selection-end-column="29" />
           <folding>
             <element signature="e#0#12#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/telegram_bot.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="272">
+          <caret line="52" lean-forward="true" selection-start-line="52" selection-end-line="52" />
+          <folding>
+            <element signature="e#25#98#0" expanded="true" />
           </folding>
         </state>
       </provider>

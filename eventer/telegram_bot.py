@@ -52,13 +52,13 @@ def get_user(update_from_telegram, session):
 
 
 # Handler for first command - start
-def start_command(bot, update):
+def start_command(bot, update_from_telegram):
     print("telegram_bot:start_command(): User starts work with chat-bot: start_command")
-    user = get_user(update, session)
-    bot.send_message(chat_id=update.message.chat_id,
+    user = get_user(update_from_telegram, session)
+    user_request = UserRequest(user_message_text="start", session_with_db=session, user=user, type="start")
+    bot.send_message(chat_id=update_from_telegram.message.chat_id,
                      text='Привет, я помогу тебе выбрать мероприятие, на которое стоит сходить, '
                           'какого рода мероприятия тебя интересуют?')
-    print("telegram_bot:start_command(): send message: 'Привет, я помогу тебе выбрать мероприятие, на которое стоит сходить, какого рода мероприятия тебя интересуют?'")
 
 
 # Handler for text message
@@ -68,7 +68,7 @@ def text_message(bot, update_from_telegram):
     user = get_user(update_from_telegram, session)
 
     # Handle request
-    user_request = UserRequest(user_message_text=user_message_text, session_with_db=session, user=user)
+    user_request = UserRequest(user_message_text=user_message_text, session_with_db=session, user=user, type="text_message")
     print("telegram_bot:text_message(): user request is: " + str(user_request))
     data_for_answer = user_request.get_answer()
     print("telegram_bot:text_message(): data for answer: " + str(data_for_answer))
