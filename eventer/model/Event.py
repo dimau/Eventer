@@ -5,7 +5,6 @@ from FormattingDataRepresentation import FormattingDataRepresentation
 
 
 class Event(Base, FormattingDataRepresentation):
-
     __tablename__ = 'events'
 
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
@@ -14,23 +13,27 @@ class Event(Base, FormattingDataRepresentation):
     _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
     _categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
     _tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
+    _price_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
     _url = sqlalchemy.Column(sqlalchemy.String(500))
-    _categories = sqlalchemy.Column(sqlalchemy.String(1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
+    _categories = sqlalchemy.Column(sqlalchemy.String(
+        1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
     _image = sqlalchemy.Column(sqlalchemy.String(200))
     _start_time = sqlalchemy.Column(sqlalchemy.Integer)
     _finish_time = sqlalchemy.Column(sqlalchemy.Integer)
     _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
     _duplicate_id = sqlalchemy.Column(sqlalchemy.Integer)
+    _price_min = sqlalchemy.Column(sqlalchemy.Integer)
+    _price_max = sqlalchemy.Column(sqlalchemy.Integer)
 
     ratings = relationship("Rating", back_populates="event")
 
     def __init__(self, source_dict):
-
         self._title = source_dict.get('title', '')
         self._description = source_dict.get('description', '')
         self._id_kudago = source_dict.get('id_kudago', '')
         self._categories_kudago = source_dict.get('categories_kudago', '')
         self._tags_kudago = self.convert_from_iterator_to_string(source_dict.get('tags_kudago', ''))
+        self._price_kudago = source_dict.get('price_kudago', '')
         self._url = source_dict.get('url', '')
         self._categories = self.convert_from_iterator_to_string(source_dict.get('categories', set()))
         self._image = source_dict.get('image', '')
@@ -38,6 +41,8 @@ class Event(Base, FormattingDataRepresentation):
         self._finish_time = source_dict.get('finish_time', 0)
         self._duplicate_source_id = source_dict.get('duplicate_source_id', '')
         self._duplicate_id = source_dict.get('duplicate_id', 0)
+        self._price_min = source_dict.get('price_min', None)
+        self._price_max = source_dict.get('price_max', None)
 
     def __repr__(self):
         return '<Event title: {}, ' \
@@ -45,24 +50,30 @@ class Event(Base, FormattingDataRepresentation):
                'id_kudago: {}, ' \
                'categories_kudago: {}, ' \
                'tags_kudago: {}, ' \
+               'price_kudago: {}, ' \
                'url: {}, ' \
                'categories: {},' \
                'image: {},' \
                'start_time: {},' \
                'finish_time: {},' \
                'duplicate_source_id: {},' \
-               'duplicate_id: {}>'.format(self._title,
-                                          self._description,
-                                          self._id_kudago,
-                                          self._categories_kudago,
-                                          self._tags_kudago,
-                                          self._url,
-                                          self._categories,
-                                          self._image,
-                                          self._start_time,
-                                          self._finish_time,
-                                          self._duplicate_source_id,
-                                          self._duplicate_id)
+               'duplicate_id: {},' \
+               'price_min: {},' \
+               'price_max: {}>'.format(self._title,
+                                       self._description,
+                                       self._id_kudago,
+                                       self._categories_kudago,
+                                       self._tags_kudago,
+                                       self._price_kudago,
+                                       self._url,
+                                       self._categories,
+                                       self._image,
+                                       self._start_time,
+                                       self._finish_time,
+                                       self._duplicate_source_id,
+                                       self._duplicate_id,
+                                       self._price_min,
+                                       self._price_max)
 
     @property
     def event_id(self):
@@ -104,6 +115,7 @@ class Event(Base, FormattingDataRepresentation):
     @duplicate_id.setter
     def duplicate_id(self, value):
         self._duplicate_id = int(value)
+
 
 """
 Все категории событий

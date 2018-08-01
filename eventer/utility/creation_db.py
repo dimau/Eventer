@@ -10,5 +10,7 @@ engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_f
 import Event
 import User
 import Rating
+import ParsingPointer
 
+# Creation not existing tables in database
 Base.metadata.create_all(engine)
