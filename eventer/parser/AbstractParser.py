@@ -19,35 +19,50 @@ class AbstractParser:
         # Define last event from previous parsing session. When we reach it, we stop parsing.
         parsing_pointer = self._create_parsing_pointer()
         self._session.add(parsing_pointer)
+        previous_parsing_pointer_value = parsing_pointer.current_pointer
 
         # Look over all pages while we don't reach a parsing pointer
         page_number = 1
-        old_event_in_collection = False
+        already_saved_event_in_collection = False
         while True:
+            print("*******************************New page number = "
+                  + str(page_number) + "*******************************")
             url = self._make_url(page=page_number)
+            print("KudaGoParser:main(): url for parsing: " + str(url))
             url_content = self._get_url_content(url)
             events_collection_source = self._list_parser(url_content)
+            print("KudaGoParser:main(): we have extracted from page in our list "
+                  + str(len(events_collection_source)) + " events")
 
             # Look over all events from list and create normalize dictionary for every event
             events_collection_normalized = []
             for item in events_collection_source:
                 events = self._item_parser(item)
-
-                # Save new parsing pointer - only in the beginning of this iteration of parsing
-                if page_number == 1:
-                    parsing_pointer.current_pointer = self._new_parsing_pointer(events[0])
+                # print("KudaGoParser:main(): event dictionary after item parsing: " + str(events))
 
                 # Check parsing pointer for every event to avoid duplicates in database
-                if self._check_parsing_pointer(events[0], parsing_pointer):
-                    old_event_in_collection = True
+                if self._check_parsing_pointer(events[0], previous_parsing_pointer_value):
+                    print("KudaGoParser:main(): checked parsing pointer, we have already handled this event")
+                    already_saved_event_in_collection = True
                     continue
+                print("KudaGoParser:main(): checked parsing pointer, it's a new event")
                 events_collection_normalized += events
 
+            # Save new parsing pointer - only in the beginning of this iteration of parsing
+            # We will save a new parsing pointer only if we have at least one new event,
+            # that doesn't exist already in database
+            if page_number == 1 and len(events_collection_normalized) > 0:
+                parsing_pointer.current_pointer = self._new_parsing_pointer(events_collection_normalized[0])
+                print("KudaGoParser:main(): remembered new parsing pointer: "
+                      + str(parsing_pointer.current_pointer))
+
             # Remove events which have finished in past
+            print("KudaGoParser:main(): we have extracted " + str(len(events_collection_normalized)) + " events")
             events_collection_normalized = self._remove_already_finished_events(events_collection_normalized)
+            print("KudaGoParser:main(): after removing already finished events: " + str(len(events_collection_normalized)) + " events")
             print("KudaGoParser:main(): page number: " + str(page_number)
                   + " new events: " + str(len(events_collection_normalized))
-                  + " is existing event on the page: " + str(old_event_in_collection))
+                  + " is existing event on the page: " + str(already_saved_event_in_collection))
 
             # Save new set of events to database
             self._write_events_to_db(events_collection_normalized)
@@ -55,7 +70,7 @@ class AbstractParser:
             # List of events from source has to be sorted by field where is value for parsing pointer.
             # If we have an event more than parsing pointer, it means that we work with event was
             # parsed last time and we don't have to continue
-            if old_event_in_collection or page_number == 2:
+            if already_saved_event_in_collection or page_number == 2:
                 break
 
             page_number += 1
@@ -78,12 +93,17 @@ class AbstractParser:
         print("AbstractParser:_get_url_content(): enter")
         # TODO: make retries for request
         with requests.get(url) as req:
-            return req
+            print("AbstractParser:_get_url_content(): status code: " + str(
+                req.status_code) + " number of symbols in text: " + str(len(req.text)))
+            if req.status_code == 200:
+                return req
+            print("ERROR: AbstractParser:_get_url_content()")
+            raise RuntimeError("We can't get content from url: " + url + " status coda: " + str(req.status_code))
 
     def _list_parser(self, url_content):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _check_parsing_pointer(self, item, parsing_pointer):
+    def _check_parsing_pointer(self, item, previous_parsing_pointer_value):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     def _item_parser(self, item):
@@ -109,6 +129,8 @@ class AbstractParser:
         :return:
         """
         print("AbstractParser:_write_events_to_db(): enter")
+        # print("AbstractParser:_write_events_to_db(): events_collection_normalized: len = "
+        # + str(len(events_collection_normalized)) + " " + str(events_collection_normalized))
 
         # Запись всех новых событий в базу данных
         for item in events_collection_normalized:

@@ -9,6 +9,20 @@ class KudaGoParser(AbstractParser):
         parsing_pointer = ParsingPointer.get_parsing_pointer(source="KudaGo", session=self._session)
         return parsing_pointer
 
+    def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
+        print("KudaGoParser:_check_parsing_pointer(): enter")
+        print("KudaGoParser:_check_parsing_pointer: item['publication_date']: "
+              + str(event_dictionary['publication_date']) + " previous_parsing_pointer_value: "
+              + str(previous_parsing_pointer_value))
+        if previous_parsing_pointer_value is None:
+            return False
+        if int(event_dictionary['publication_date']) > int(previous_parsing_pointer_value):
+            return False
+        return True
+
+    def _new_parsing_pointer(self, event_dictionary):
+        return str(event_dictionary["publication_date"])
+
     def _make_url(self, page):
         """
         Собирает урл для получения страницы со списком мероприятий
@@ -47,12 +61,6 @@ class KudaGoParser(AbstractParser):
         url_content_json = url_content.json()
         return url_content_json['results']
 
-    def _check_parsing_pointer(self, item, parsing_pointer):
-        if int(item['publication_date']) > int(parsing_pointer.current_pointer) or parsing_pointer.current_pointer == None:
-            return False
-        else:
-            return True
-
     def _item_parser(self, item):
         """
         Extract fields from source HTML or JSON to create Event from them and save to database
@@ -60,7 +68,7 @@ class KudaGoParser(AbstractParser):
         :return: return list of events, in most cases it will contain only one item, but if event has several dates,
         every date will have its own event in list
         """
-        print("KudaGoParser:_item_parser(): enter")
+        # print("KudaGoParser:_item_parser(): enter, item: " + str(item))
         events = []
         event_common_parameters = {}
         event_common_parameters['id_kudago'] = item['id']
@@ -90,7 +98,6 @@ class KudaGoParser(AbstractParser):
 
     @staticmethod
     def _type_of_event_converter(source_type_of_event):
-        print("KudaGoParser:_type_of_event_converter(): enter")
         type_of_event_dictionary = {
             "concert": ["concert"],
             "theater": ["theater"],
@@ -137,6 +144,3 @@ class KudaGoParser(AbstractParser):
             "business-events": ["business-events"]
         }
         return set(type_of_event_dictionary.get(source_type_of_event, []))
-
-    def _new_parsing_pointer(self, event_dictionary):
-        return str(event_dictionary["publication_date"])
