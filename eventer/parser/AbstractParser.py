@@ -1,6 +1,7 @@
 import time
 import datetime
 import requests
+import logging
 from Event import Event
 
 
@@ -25,27 +26,25 @@ class AbstractParser:
         page_number = 1
         already_saved_event_in_collection = False
         while True:
-            print("*******************************New page number = "
-                  + str(page_number) + "*******************************")
+            logging.info('New page number = %s', page_number)
             url = self._make_url(page=page_number)
-            print("KudaGoParser:main(): url for parsing: " + str(url))
+            logging.info('Url for parsing: %s', url)
             url_content = self._get_url_content(url)
             events_collection_source = self._list_parser(url_content)
-            print("KudaGoParser:main(): we have extracted from page in our list "
-                  + str(len(events_collection_source)) + " events")
+            logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
             # Look over all events from list and create normalize dictionary for every event
             events_collection_normalized = []
             for item in events_collection_source:
                 events = self._item_parser(item)
-                # print("KudaGoParser:main(): event dictionary after item parsing: " + str(events))
+                logging.debug('Event dictionary after item parsing: %s', events)
 
                 # Check parsing pointer for every event to avoid duplicates in database
                 if self._check_parsing_pointer(events[0], previous_parsing_pointer_value):
-                    print("KudaGoParser:main(): checked parsing pointer, we have already handled this event")
+                    logging.info('Checked parsing pointer, we have already handled this event')
                     already_saved_event_in_collection = True
                     continue
-                print("KudaGoParser:main(): checked parsing pointer, it's a new event")
+                logging.info('Checked parsing pointer, it is a new event')
                 events_collection_normalized += events
 
             # Save new parsing pointer - only in the beginning of this iteration of parsing
@@ -53,16 +52,13 @@ class AbstractParser:
             # that doesn't exist already in database
             if page_number == 1 and len(events_collection_normalized) > 0:
                 parsing_pointer.current_pointer = self._new_parsing_pointer(events_collection_normalized[0])
-                print("KudaGoParser:main(): remembered new parsing pointer: "
-                      + str(parsing_pointer.current_pointer))
+                logging.info('Remembered new parsing pointer: %s', parsing_pointer.current_pointer)
 
             # Remove events which have finished in past
-            print("KudaGoParser:main(): we have extracted " + str(len(events_collection_normalized)) + " events")
+            logging.info('%s events in our list of normalized dictionaries', len(events_collection_normalized))
             events_collection_normalized = self._remove_already_finished_events(events_collection_normalized)
-            print("KudaGoParser:main(): after removing already finished events: " + str(len(events_collection_normalized)) + " events")
-            print("KudaGoParser:main(): page number: " + str(page_number)
-                  + " new events: " + str(len(events_collection_normalized))
-                  + " is existing event on the page: " + str(already_saved_event_in_collection))
+            logging.info('In summary for page number %s, new events: %s, is existing event on the page: %s',
+                         page_number, len(events_collection_normalized), already_saved_event_in_collection)
 
             # Save new set of events to database
             self._write_events_to_db(events_collection_normalized)
@@ -90,15 +86,14 @@ class AbstractParser:
         :param url:
         :return:
         """
-        print("AbstractParser:_get_url_content(): enter")
+        logging.debug('Enter to the method')
         # TODO: make retries for request
         with requests.get(url) as req:
-            print("AbstractParser:_get_url_content(): status code: " + str(
-                req.status_code) + " number of symbols in text: " + str(len(req.text)))
+            logging.info('status code %s, number of symbols in text: %s', req.status_code, len(req.text))
             if req.status_code == 200:
                 return req
-            print("ERROR: AbstractParser:_get_url_content()")
-            raise RuntimeError("We can't get content from url: " + url + " status coda: " + str(req.status_code))
+            logging.error('status code != 200')
+            raise RuntimeError("We can't get content from url: " + url + " status code: " + str(req.status_code))
 
     def _list_parser(self, url_content):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
@@ -128,15 +123,15 @@ class AbstractParser:
         :param events_collection_normalized:
         :return:
         """
-        print("AbstractParser:_write_events_to_db(): enter")
-        # print("AbstractParser:_write_events_to_db(): events_collection_normalized: len = "
-        # + str(len(events_collection_normalized)) + " " + str(events_collection_normalized))
+        logging.debug('Enter to the method')
+        logging.info('We will write to database %s events', len(events_collection_normalized))
 
         # Запись всех новых событий в базу данных
         for item in events_collection_normalized:
             event = Event(item)
             self._session.add(event)
         self._session.commit()
+        logging.info('Write to database was successful')
 
         # Assignment real id of last event for duplicates of this event with other dates
         handled_duplicate_source_id = []
@@ -148,7 +143,7 @@ class AbstractParser:
             for event in all_duplicates:
                 event.duplicate_id = latest_event_id
                 self._session.add(event)
-                # print(" ******************************** \n" + str(event))
             handled_duplicate_source_id.append(item['duplicate_source_id'])
         self._session.commit()
+        logging.info('Number of handled duplicate source id: %s', len(handled_duplicate_source_id))
         return

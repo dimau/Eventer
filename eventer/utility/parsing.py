@@ -11,11 +11,38 @@ sys.path.append('/home/dimau777/projects/eventer/eventer/parser/')
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from ParserFactory import ParserFactory
+import argparse
+import logging
 # it's needed for operation relationship between User, Event and Rating
 from Event import Event
 from User import User
 from Rating import Rating
 
+# Extracting parameters from command line
+# We are expecting launch from cron by command like: 'python eventer/utility/parsing.py --source=KudaGo --log=INFO'
+parser = argparse.ArgumentParser(description='parser of arguments of command line for parsing launch')
+parser.add_argument('-s', '--source', action='store', dest='source',
+                    help='codename source for parsing (KudaGo for example)')
+parser.add_argument('--log', action='store', dest='loglevel', help='level of logging for this launch')
+args = parser.parse_args()
+
+# Check for logging level
+log_level = args.loglevel if args.loglevel else "INFO"
+numeric_level = getattr(logging, log_level.upper(), None)
+if not isinstance(numeric_level, int):
+    raise ValueError("Invalid log level: {}".format(log_level))
+
+# Logging tuning
+logging.basicConfig(format='%(levelname)s - %(asctime)s - %(module)s - %(funcName)s - %(message)s',
+                    level=numeric_level
+                    # filename='example.log'
+                    )
+
+# Check for source for parsing
+if not args.source:
+    logging.error("There is NOT parameter with source name for parsing: --source")
+    raise ValueError("There is NOT parameter with source name for parsing: --source")
+logging.info('start of parsing %s', args.source)
 
 # Parameters for future config file
 user_for_mysql = "eventer"
@@ -26,13 +53,6 @@ engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_f
 Session = sessionmaker(bind=engine)
 session = Session()
 
-# Take a source for parsing from argument
-# We are expecting launch from cron by command like: 'python eventer/utility/parsing.py KudaGo'
-if len(sys.argv) == 1:
-    print("ERROR parsing.py: we don't have parameter with source name for parsing")
-source = sys.argv[1]
-print("parsing.py: start of parsing " + source)
-
 # Create concrete parser and do parse source
-parser = ParserFactory.create_parser(source, session)
+parser = ParserFactory.create_parser(args.source, session)
 parser.main()

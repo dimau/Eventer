@@ -1,5 +1,6 @@
 import sqlalchemy
 from Base_class_sql_alchemy import Base
+import logging
 
 
 class ParsingPointer(Base):
@@ -11,7 +12,7 @@ class ParsingPointer(Base):
     _current_pointer = sqlalchemy.Column(sqlalchemy.String(150))
 
     def __init__(self, source=None, session=None):
-        print("ParsingPointer:__init__(): enter")
+        logging.debug('Enter to the method')
         self.source = source
         self.session = session
 

@@ -2,9 +2,11 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="8e1f9942-63e4-4c22-83f3-1c06e55ac1c9" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eventer/model/ParsingPointer.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/model/ParsingPointer.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/parser/AbstractParser.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/parser/AbstractParser.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/eventer/parser/KudaGoParser.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/parser/KudaGoParser.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eventer/parser/ParserFactory.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/parser/ParserFactory.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/eventer/utility/parsing.py" beforeDir="false" afterPath="$PROJECT_DIR$/eventer/utility/parsing.py" afterDir="false" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
@@ -34,87 +36,26 @@
       </usages-collector>
       <usages-collector id="statistics.file.extensions.edit">
         <counts>
-          <entry key="py" value="4541" />
+          <entry key="py" value="8050" />
         </counts>
       </usages-collector>
       <usages-collector id="statistics.file.types.edit">
         <counts>
-          <entry key="Python" value="4541" />
+          <entry key="Python" value="8050" />
         </counts>
       </usages-collector>
     </session>
   </component>
   <component name="FileEditorManager">
     <leaf SIDE_TABS_SIZE_LIMIT_KEY="300">
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/eventer/parser/KudaGoParser.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="680">
-              <caret line="40" column="38" lean-forward="true" selection-start-line="40" selection-start-column="38" selection-end-line="40" selection-end-column="38" />
-              <folding>
-                <element signature="e#0#41#0" expanded="true" />
-                <marker date="1533311262535" expanded="true" signature="2785:2791" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
+      <file pinned="false" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
           <provider selected="true" editor-type-id="text-editor">
             <state relative-caret-position="119">
-              <caret line="10" column="54" selection-start-line="10" selection-start-column="54" selection-end-line="10" selection-end-column="54" />
+              <caret line="7" column="27" selection-start-line="7" selection-start-column="27" selection-end-line="7" selection-end-column="27" />
               <folding>
                 <element signature="e#0#17#0" expanded="true" />
               </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="true">
-        <entry file="file://$PROJECT_DIR$/eventer/parser/AbstractParser.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="330">
-              <caret line="128" column="16" lean-forward="true" selection-start-line="128" selection-start-column="16" selection-end-line="128" selection-end-column="16" />
-              <folding>
-                <element signature="e#0#11#0" expanded="true" />
-                <marker date="1533311331635" expanded="true" signature="91:163" ph="..." />
-                <marker date="1533311331635" expanded="true" signature="5580:5677" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/eventer/model/ParsingPointer.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="561">
-              <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
-              <folding>
-                <element signature="e#0#17#0" expanded="true" />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/eventer/parser/ParserFactory.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="102">
-              <caret line="6" column="8" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
-              <folding>
-                <marker date="1533132498887" expanded="true" signature="132:133" ph="..." />
-                <marker date="1533132498887" expanded="true" signature="132:191" ph="..." />
-              </folding>
-            </state>
-          </provider>
-        </entry>
-      </file>
-      <file pinned="false" current-in-tab="false">
-        <entry file="file://$PROJECT_DIR$/eventer/utility/parsing.py">
-          <provider selected="true" editor-type-id="text-editor">
-            <state relative-caret-position="646">
-              <caret line="38" lean-forward="true" selection-start-line="38" selection-end-line="38" />
             </state>
           </provider>
         </entry>
@@ -181,7 +122,6 @@
       <find>Event</find>
       <find>get_</find>
       <find>UserRequest</find>
-      <find>print</find>
       <find>sess</find>
       <find>telegram_id</find>
       <find>_last_queue_events_str</find>
@@ -193,6 +133,7 @@
       <find>holiday</find>
       <find>rati</find>
       <find>ratin</find>
+      <find>print</find>
     </findStrings>
     <dirStrings>
       <dir>E:\projects\eventer</dir>
@@ -224,12 +165,12 @@
         <option value="$PROJECT_DIR$/eventer/model/User.py" />
         <option value="$PROJECT_DIR$/eventer/model/Event.py" />
         <option value="$PROJECT_DIR$/eventer/KudaGoParser.py" />
-        <option value="$PROJECT_DIR$/eventer/parser/ParserFactory.py" />
-        <option value="$PROJECT_DIR$/eventer/utility/parsing.py" />
-        <option value="$PROJECT_DIR$/eventer/model/ParsingPointer.py" />
         <option value="$PROJECT_DIR$/eventer/utility/creation_db.py" />
-        <option value="$PROJECT_DIR$/eventer/parser/KudaGoParser.py" />
+        <option value="$PROJECT_DIR$/eventer/utility/parsing.py" />
         <option value="$PROJECT_DIR$/eventer/parser/AbstractParser.py" />
+        <option value="$PROJECT_DIR$/eventer/parser/KudaGoParser.py" />
+        <option value="$PROJECT_DIR$/eventer/model/ParsingPointer.py" />
+        <option value="$PROJECT_DIR$/eventer/parser/ParserFactory.py" />
       </list>
     </option>
   </component>
@@ -469,44 +410,6 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="119">
-          <caret line="10" column="54" selection-start-line="10" selection-start-column="54" selection-end-line="10" selection-end-column="54" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/model/ParsingPointer.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="561">
-          <caret line="34" column="8" selection-start-line="34" selection-start-column="8" selection-end-line="34" selection-end-column="8" />
-          <folding>
-            <element signature="e#0#17#0" expanded="true" />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/parser/ParserFactory.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="102">
-          <caret line="6" column="8" selection-start-line="6" selection-start-column="8" selection-end-line="6" selection-end-column="8" />
-          <folding>
-            <marker date="1533132498887" expanded="true" signature="132:133" ph="..." />
-            <marker date="1533132498887" expanded="true" signature="132:191" ph="..." />
-          </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/utility/parsing.py">
-      <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="646">
-          <caret line="38" lean-forward="true" selection-start-line="38" selection-end-line="38" />
-        </state>
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/eventer/model/Rating.py">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="374">
@@ -547,25 +450,63 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/eventer/parser/KudaGoParser.py">
+    <entry file="file://$PROJECT_DIR$/eventer/utility/parsing.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="680">
-          <caret line="40" column="38" lean-forward="true" selection-start-line="40" selection-start-column="38" selection-end-line="40" selection-end-column="38" />
-          <folding>
-            <element signature="e#0#41#0" expanded="true" />
-            <marker date="1533311262535" expanded="true" signature="2785:2791" ph="..." />
-          </folding>
+        <state relative-caret-position="561">
+          <caret line="33" lean-forward="true" selection-start-line="33" selection-end-line="33" />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/eventer/parser/AbstractParser.py">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="330">
-          <caret line="128" column="16" lean-forward="true" selection-start-line="128" selection-start-column="16" selection-end-line="128" selection-end-column="16" />
+        <state relative-caret-position="2176">
+          <caret line="128" column="48" selection-start-line="128" selection-start-column="48" selection-end-line="128" selection-end-column="48" />
           <folding>
             <element signature="e#0#11#0" expanded="true" />
-            <marker date="1533311331635" expanded="true" signature="91:163" ph="..." />
-            <marker date="1533311331635" expanded="true" signature="5580:5677" ph="..." />
+            <marker date="1533385131185" expanded="true" signature="106:178" ph="..." />
+            <marker date="1533385131185" expanded="true" signature="5114:5211" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/model/ParsingPointer.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="612">
+          <caret line="36" column="43" selection-start-line="36" selection-start-column="43" selection-end-line="36" selection-end-column="43" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/parser/ParserFactory.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="306">
+          <caret line="18" lean-forward="true" selection-start-line="18" selection-end-line="18" />
+          <folding>
+            <marker date="1533385573962" expanded="true" signature="149:150" ph="..." />
+            <marker date="1533385573962" expanded="true" signature="149:208" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/parser/KudaGoParser.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="323">
+          <caret line="19" selection-start-line="19" selection-end-line="19" />
+          <folding>
+            <element signature="e#0#41#0" expanded="true" />
+            <marker date="1533385573369" expanded="true" signature="2678:2684" ph="..." />
+          </folding>
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/eventer/model/Event.py">
+      <provider selected="true" editor-type-id="text-editor">
+        <state relative-caret-position="119">
+          <caret line="7" column="27" selection-start-line="7" selection-start-column="27" selection-end-line="7" selection-end-column="27" />
+          <folding>
+            <element signature="e#0#17#0" expanded="true" />
           </folding>
         </state>
       </provider>

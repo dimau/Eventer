@@ -1,6 +1,7 @@
 from AbstractParser import AbstractParser
 from ParsingPointer import ParsingPointer
 import copy
+import logging
 
 
 class KudaGoParser(AbstractParser):
@@ -10,10 +11,7 @@ class KudaGoParser(AbstractParser):
         return parsing_pointer
 
     def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
-        print("KudaGoParser:_check_parsing_pointer(): enter")
-        print("KudaGoParser:_check_parsing_pointer: item['publication_date']: "
-              + str(event_dictionary['publication_date']) + " previous_parsing_pointer_value: "
-              + str(previous_parsing_pointer_value))
+        logging.info('Enter to the method, item["publication_date"]: %s, previous_parsing_pointer_value: %s', event_dictionary['publication_date'], previous_parsing_pointer_value)
         if previous_parsing_pointer_value is None:
             return False
         if int(event_dictionary['publication_date']) > int(previous_parsing_pointer_value):
@@ -29,7 +27,7 @@ class KudaGoParser(AbstractParser):
         Url example: https://kudago.com/public-api/v1.4/events/?lang=ru&page_size=10&order_by=-id&text_format=html&location=msk&is_free=0&fields=id,dates,title,short_title,slug,place,description,body_text,location,categories, tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&page=1
         :return:
         """
-        print("KudaGoParser:_make_url(): enter")
+        logging.debug('Enter to the method')
         url_template = 'https://kudago.com/public-api/v1.4/events/?' \
                        'lang=%(lang)s&' \
                        'page_size=%(page_size)s&' \
@@ -57,7 +55,7 @@ class KudaGoParser(AbstractParser):
         Метод возвращает коллекцию из событий с данной страницы
         :return: 
         """
-        print("KudaGoParser:_list_parser(): enter")
+        logging.debug('Enter to the method')
         url_content_json = url_content.json()
         return url_content_json['results']
 
@@ -68,7 +66,7 @@ class KudaGoParser(AbstractParser):
         :return: return list of events, in most cases it will contain only one item, but if event has several dates,
         every date will have its own event in list
         """
-        # print("KudaGoParser:_item_parser(): enter, item: " + str(item))
+        logging.debug('Enter to the method, iter: %s', item)
         events = []
         event_common_parameters = {}
         event_common_parameters['id_kudago'] = item['id']
@@ -93,7 +91,7 @@ class KudaGoParser(AbstractParser):
             event['start_time'] = date_of_event['start']
             event['finish_time'] = date_of_event['end']
             events.append(event)
-            # print("*********************************\n" + str(event))
+        logging.debug('final list of dictionaries: %s', events)
         return events
 
     @staticmethod
