@@ -116,6 +116,14 @@ class Event(Base, FormattingDataRepresentation):
     def duplicate_id(self, value):
         self._duplicate_id = int(value)
 
+    @property
+    def price_min(self):
+        return self._price_min
+
+    @property
+    def price_max(self):
+        return self._price_max
+
 
 """
 Все категории событий

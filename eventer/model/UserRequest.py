@@ -61,6 +61,10 @@ class UserRequest:
 
             answer["text"] = relevant_events[0].title.capitalize()
             answer['datetime'] = relevant_events[0].start_time
+            if relevant_events[0].price_min:
+                answer['price_min'] = relevant_events[0].price_min
+            if relevant_events[0].price_max:
+                answer['price_max'] = relevant_events[0].price_max
             answer["url"] = relevant_events[0].url
             answer["img"] = relevant_events[0].image
             answer["status"] = "one_event"
@@ -94,6 +98,10 @@ class UserRequest:
                 next_event = self.session.query(Event).filter(Event._id == next_event_id).first()
                 answer["text"] = next_event.title.capitalize()
                 answer['datetime'] = next_event.start_time
+                if next_event.price_min:
+                    answer['price_min'] = next_event.price_min
+                if next_event.price_max:
+                    answer['price_max'] = next_event.price_max
                 answer["url"] = next_event.url
                 answer["img"] = next_event.image
                 answer["status"] = "one_event"

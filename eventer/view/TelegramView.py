@@ -14,6 +14,10 @@ class TelegramView(AbstractView):
         text_answer = ""
         if "datetime" in data_for_answer.keys():
             text_answer += AbstractView.convert_timestamp_to_date_and_time(data_for_answer["datetime"])
+        if "price_min" in data_for_answer.keys() and "price_max" in data_for_answer.keys() and data_for_answer['price_min'] == data_for_answer['price_max']:
+            text_answer += " " + str(data_for_answer['price_min']) + " руб"
+        elif "price_min" in data_for_answer.keys():
+            text_answer += " от " + str(data_for_answer['price_min']) + " руб"
         if "img" in data_for_answer.keys():
             text_answer += "<a href='" + data_for_answer["img"] + "' target='_blank'>.</a>"
         if "url" in data_for_answer.keys():

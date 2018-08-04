@@ -2,6 +2,7 @@ from AbstractParser import AbstractParser
 from ParsingPointer import ParsingPointer
 import copy
 import logging
+import re
 
 
 class KudaGoParser(AbstractParser):
@@ -77,6 +78,7 @@ class KudaGoParser(AbstractParser):
         event_common_parameters['categories_kudago'] = item['categories'][0]
         event_common_parameters['tags_kudago'] = item['tags']
         event_common_parameters['price_kudago'] = item['price']
+        event_common_parameters['price_min'], event_common_parameters['price_max'] = self._get_price_from_string(item['price'])
         event_common_parameters['categories'] = self._type_of_event_converter(item['categories'][0])
         if len(item['images']) > 0:
             event_common_parameters['image'] = item['images'][0]['image']
@@ -93,6 +95,30 @@ class KudaGoParser(AbstractParser):
             events.append(event)
         logging.debug('final list of dictionaries: %s', events)
         return events
+
+    @staticmethod
+    def _get_price_from_string(source_price_string):
+        # Initialization
+        price_min = None
+        price_max = None
+        if not source_price_string or not isinstance(source_price_string, str):
+            return price_min, price_max
+
+        # Like "от 500 до 700 рублей" or "от 500 руб."
+        result_of_matching = re.match("от (\d*).*", source_price_string)
+        if result_of_matching and result_of_matching.group(1):
+            price_min = int(result_of_matching.group(1))
+            return price_min, price_max
+
+        # Like "2000 рублей" or "2000 руб."
+        result_of_matching = re.match("(\d*).*", source_price_string)
+        if result_of_matching and result_of_matching.group(1):
+            price_min = int(result_of_matching.group(1))
+            price_max = price_min
+            return price_min, price_max
+
+        # Return result
+        return price_min, price_max
 
     @staticmethod
     def _type_of_event_converter(source_type_of_event):
