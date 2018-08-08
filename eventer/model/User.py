@@ -2,6 +2,7 @@ import sqlalchemy
 from Base_class_sql_alchemy import Base
 from sqlalchemy.orm import relationship
 from FormattingDataRepresentation import FormattingDataRepresentation
+import logging
 
 
 class User(Base, FormattingDataRepresentation):
@@ -15,11 +16,9 @@ class User(Base, FormattingDataRepresentation):
     ratings = relationship("Rating", back_populates="user")
 
     def __init__(self, telegram_id=None, name=""):
-        print("User:__init__(): enter")
         self.telegram_id = telegram_id
         self._name = name
         self.last_queue_events = []
-        print("User:__init__(): telegram_id: " + self.telegram_id)
 
     def __repr__(self):
         return "<User _id: {}, " \
@@ -53,12 +52,12 @@ class User(Base, FormattingDataRepresentation):
             return []
         # Split string to list and conversion to integer
         # It is important to save the order of elements
-        array = self._last_queue_events_str.split("|")
-        for i in range(len(array)):
-            print(i)
-            array[i] = int(array[i])
-        print("User:last_queue_events getter: value: " + str(array)[0:20])
-        return array
+        array_str = self._last_queue_events_str.split("|")
+        array_int = []
+        for item in array_str:
+            array_int.append(int(item))
+        logging.debug('Value of last_queue_events: %s', str(array_int))
+        return array_int
 
     @last_queue_events.setter
     def last_queue_events(self, queue):
@@ -70,8 +69,8 @@ class User(Base, FormattingDataRepresentation):
         """
         self._last_queue_events_str = self.convert_from_iterator_to_string(queue)
         # TODO: add protection from string more than 2000 symbols
-        print("User:last_queue_events setter: length value is " + str(len(self._last_queue_events_str)))
-        print("User:last_queue_events setter: value: " + self._last_queue_events_str[0:20])
+        logging.debug('length of last_queue_events: %s, value: %s', len(self._last_queue_events_str),
+                      self._last_queue_events_str)
 
     def delete_previous_event_from_queue(self):
         list_of_events = self.last_queue_events

@@ -57,7 +57,7 @@ class AbstractParser:
             # Remove events which have finished in past
             logging.info('%s events in our list of normalized dictionaries', len(events_collection_normalized))
             events_collection_normalized = self._remove_already_finished_events(events_collection_normalized)
-            logging.info('In summary for page number %s, new events: %s, is existing event on the page: %s',
+            logging.info('In summary for page number %s. New events: %s, is existing event on the page: %s',
                          page_number, len(events_collection_normalized), already_saved_event_in_collection)
 
             # Save new set of events to database
@@ -66,7 +66,7 @@ class AbstractParser:
             # List of events from source has to be sorted by field where is value for parsing pointer.
             # If we have an event more than parsing pointer, it means that we work with event was
             # parsed last time and we don't have to continue
-            if already_saved_event_in_collection or page_number == 2:
+            if already_saved_event_in_collection or page_number == 10:
                 break
 
             page_number += 1

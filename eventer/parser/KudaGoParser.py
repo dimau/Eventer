@@ -1,11 +1,12 @@
 from AbstractParser import AbstractParser
 from ParsingPointer import ParsingPointer
+from FormattingDataRepresentation import FormattingDataRepresentation
 import copy
 import logging
 import re
 
 
-class KudaGoParser(AbstractParser):
+class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
     def _create_parsing_pointer(self):
         parsing_pointer = ParsingPointer.get_parsing_pointer(source="KudaGo", session=self._session)
@@ -41,7 +42,7 @@ class KudaGoParser(AbstractParser):
 
         url = url_template % {
             'lang': 'ru',
-            'page_size': '10',
+            'page_size': '100',
             'order_by': "-publication_date",
             'text_format': 'html',
             'location': 'msk',
@@ -75,15 +76,17 @@ class KudaGoParser(AbstractParser):
         event_common_parameters['title'] = item['title']
         event_common_parameters['description'] = item['description']
         event_common_parameters['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
-        event_common_parameters['categories_kudago'] = item['categories'][0]
+        event_common_parameters['categories_kudago'] = self.convert_from_iterator_to_string(item['categories'])
         event_common_parameters['tags_kudago'] = item['tags']
         event_common_parameters['price_kudago'] = item['price']
         event_common_parameters['price_min'], event_common_parameters['price_max'] = self._get_price_from_string(item['price'])
-        event_common_parameters['categories'] = self._type_of_event_converter(item['categories'][0])
+        event_common_parameters['categories'] = self._convert_from_source_type_list_to_inner_type_set(item['categories'])
         if len(item['images']) > 0:
             event_common_parameters['image'] = item['images'][0]['image']
         else:
             event_common_parameters['image'] = ""
+
+        # Complicate handling of dates
         if len(item['dates']) > 1:
             event_common_parameters['duplicate_source_id'] = event_common_parameters['id_kudago']  # Пока положим сюда id из сайта источника - kuda go, после сохранения в базу нужно будет взять наш собственный индекс
         else:
@@ -92,6 +95,11 @@ class KudaGoParser(AbstractParser):
             event = copy.deepcopy(event_common_parameters)
             event['start_time'] = date_of_event['start']
             event['finish_time'] = date_of_event['end']
+            events.append(event)
+        if len(item['dates']) == 0:
+            event = copy.deepcopy(event_common_parameters)
+            event['start_time'] = 0
+            event['finish_time'] = 0
             events.append(event)
         logging.debug('final list of dictionaries: %s', events)
         return events
@@ -120,8 +128,25 @@ class KudaGoParser(AbstractParser):
         # Return result
         return price_min, price_max
 
+    def _convert_from_source_type_list_to_inner_type_set(self, source_type_list):
+        """
+        Take a list of categories from source and return set of appropriate inner categories
+        :param source_type_list: list of string (list of categories) from KudaGo
+        :return: set of inner categories
+        """
+        inner_type_set = set()
+        for item in source_type_list:
+            type_set_for_item = self._type_of_event_converter(item)
+            inner_type_set = inner_type_set.union(type_set_for_item)
+        return inner_type_set
+
     @staticmethod
     def _type_of_event_converter(source_type_of_event):
+        """
+        Take one string = one category and return appropriate set of inner types
+        :param source_type_of_event: one string = one category
+        :return: appropriate set of inner types
+        """
         type_of_event_dictionary = {
             "concert": ["concert"],
             "theater": ["theater"],

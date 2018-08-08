@@ -1,7 +1,9 @@
+# -*- coding: utf-8 -*-
+
 import sqlalchemy
 from Base_class_sql_alchemy import Base
 
-# Параметры для конфиг файла
+# Parameters for config file
 user_for_mysql = "eventer"
 password_for_mysql = "Nhgbf86jmnIK"
 

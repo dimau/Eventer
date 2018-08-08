@@ -1,11 +1,12 @@
 import datetime
+import logging
 
 
 class AbstractView:
 
     @staticmethod
     def convert_timestamp_to_date_and_time(source_timestamp):
-        print("AbstractView:convert_timestamp_to_date_and_time(): enter")
+        logging.debug('Enter to the method')
         source_datetime = AbstractView._convert_utc_timestamp_to_local_timestamp(source_timestamp)
         source_datetime = datetime.datetime.fromtimestamp(source_datetime)
         source_date = source_datetime.day
@@ -21,10 +22,12 @@ class AbstractView:
 
     @staticmethod
     def _convert_utc_timestamp_to_local_timestamp(utc_timestamp):
+        logging.debug('Enter to the method')
         return utc_timestamp + 3600 * 3  # only for Moscow 3 hours plus from UTC
 
     @staticmethod
     def _convert_month_to_russian_name(month):
+        logging.debug('Enter to the method')
         source_month = str(month)
         converter = {
             "1": "января",
@@ -53,6 +56,7 @@ class AbstractView:
 
     @staticmethod
     def _convert_minutes_to_normal_format(minutes):
+        logging.debug('Enter to the method')
         source_minutes = str(minutes)
         if len(source_minutes) == 2:
             return source_minutes
@@ -60,4 +64,5 @@ class AbstractView:
 
     @staticmethod
     def _convert_date_to_normal_format(source_date):
+        logging.debug('Enter to the method')
         return str(int(source_date))
