@@ -49,7 +49,7 @@ class TelegramView(AbstractView):
         not_like_button = KeyboardButton("\U0001F44E")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
         like_button = KeyboardButton("\U0001F44D")
         favorites_button = KeyboardButton("Избранное")
-        all_categories_button = KeyboardButton("Все категории")
+        all_categories_button = KeyboardButton("Помощь")
         if data_for_answer.get("status", "unknown") == "one_event":
             all_buttons = ReplyKeyboardMarkup([[like_button, not_like_button], [favorites_button, all_categories_button]],
                                               resize_keyboard=True,

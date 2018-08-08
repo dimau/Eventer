@@ -1,5 +1,6 @@
 from AbstractAnswerMaker import AbstractAnswerMaker
 from Event import Event
+from Rating import Rating
 import datetime
 import logging
 
@@ -23,7 +24,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         logging.debug('Sorted list of relevant events: %s', relevant_events)
         logging.info('Size of sorted list of relevant events: %s', len(relevant_events))
         if not relevant_events:
-            answer["text"] = "Я не нашел событий под эти условия, давайте переформулируем?"
+            answer["text"] = "Я не нашел новых событий под эти условия, давайте поищем что-нибудь еще?"
             answer["status"] = "none_event"
             self.user.clear_last_queue_events()
             return answer
@@ -193,7 +194,23 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                 Event._start_time >= start_timestamp,
                 Event._start_time <= finish_timestamp
             ).all())
+        logging.info("Size of set of relevant events: %s", len(relevant_events))
+        relevant_events = self._remove_evaluated_events(relevant_events)
         return relevant_events
+
+    def _remove_evaluated_events(self, relevant_events):
+        ids_evaluated_events = set()
+        for event_id, in self.session.query(Rating._event_id).filter(Rating._user_id == self.user.user_id):
+            ids_evaluated_events.add(event_id)
+        result_set_of_events = set()
+        removed_events = []
+        for event in relevant_events:
+            if event.event_id in ids_evaluated_events:
+                removed_events.append(event.event_id)
+                continue
+            result_set_of_events.add(event)
+        logging.info('Removed events: %s', removed_events)
+        return result_set_of_events
 
     def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
         """
