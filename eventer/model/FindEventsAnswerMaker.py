@@ -28,16 +28,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             answer["status"] = "none_event"
             self.user.clear_last_queue_events()
             return answer
-
-        answer["text"] = relevant_events[0].title.capitalize()
-        answer['datetime'] = relevant_events[0].start_time
-        if relevant_events[0].price_min:
-            answer['price_min'] = relevant_events[0].price_min
-        if relevant_events[0].price_max:
-            answer['price_max'] = relevant_events[0].price_max
-        answer["url"] = relevant_events[0].url
-        answer["img"] = relevant_events[0].image
-        answer["status"] = "one_event"
+        answer.update(self.make_one_event_data_card(relevant_events[0]))
 
         # We have to save the sorted list of relevant events for user
         self.user.last_queue_events = self._get_id_for_events_in_iterator(relevant_events)
@@ -195,6 +186,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                 Event._start_time <= finish_timestamp
             ).all())
         logging.info("Size of set of relevant events: %s", len(relevant_events))
+        relevant_events = self._replace_duplicates_for_main_event(relevant_events)
         relevant_events = self._remove_evaluated_events(relevant_events)
         return relevant_events
 
@@ -210,6 +202,28 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                 continue
             result_set_of_events.add(event)
         logging.info('Removed events: %s', removed_events)
+        return result_set_of_events
+
+    def _replace_duplicates_for_main_event(self, relevant_events):
+        """
+        Take set of events, removes from it all duplicates and replaces them by latest main event in every series
+        :param relevant_events:
+        :return:
+        """
+        result_set_of_events = set()
+        duplicate_events = []
+        id_main_events = set()  # for optimization amount of requests to database
+        for event in relevant_events:
+            if not event.duplicate_id:
+                result_set_of_events.add(event)
+                continue
+            duplicate_events.append(event.event_id)
+            if event.duplicate_id in id_main_events:
+                continue
+            main_event = self.session.query(Event).filter(Event._id == event.duplicate_id).first()
+            id_main_events.add(main_event.event_id)
+            result_set_of_events.add(main_event)
+        logging.info('Replaced duplicate events: %s', duplicate_events)
         return result_set_of_events
 
     def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories):

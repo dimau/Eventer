@@ -32,15 +32,13 @@ class LikeDislikeAnswerMaker(AbstractAnswerMaker):
         else:
             next_event_id = last_queue_events[1]
             next_event = self.session.query(Event).filter(Event._id == next_event_id).first()
-            answer["text"] = next_event.title.capitalize()
-            answer['datetime'] = next_event.start_time
-            if next_event.price_min:
-                answer['price_min'] = next_event.price_min
-            if next_event.price_max:
-                answer['price_max'] = next_event.price_max
-            answer["url"] = next_event.url
-            answer["img"] = next_event.image
-            answer["status"] = "one_event"
+            if not next_event:
+                logging.error('Does not exist event with id: %s', next_event_id)
+                answer["text"] = "Больше не осталось подходящих событий, поищем что-то еще?"
+                answer["status"] = "none_event"
+                self.user.clear_last_queue_events()
+                return answer
+            answer.update(self.make_one_event_data_card(next_event))
             self.user.delete_previous_event_from_queue()
 
         # Save all changes to database

@@ -12,17 +12,26 @@ class Event(Base, FormattingDataRepresentation):
     _description = sqlalchemy.Column(sqlalchemy.String(1000))
     _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
     _categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
-    _tags_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
+    _tags_kudago = sqlalchemy.Column(sqlalchemy.String(500))  # временно сохраняю в базу для отладки
+    # String with price from KudaGo (can be complicated for parsing)
     _price_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
+    # Source url of description of the event
     _url = sqlalchemy.Column(sqlalchemy.String(500))
-    _categories = sqlalchemy.Column(sqlalchemy.String(
-        1000))  # список категорий через черту | в виде строки текста, к которым относится мероприятие - внутрипроектное представление
+    # List of categories divided by '|' like a string of text
+    _categories = sqlalchemy.Column(sqlalchemy.String(1000))
+    # Url to main image of the event
     _image = sqlalchemy.Column(sqlalchemy.String(200))
+    # Timestamp in UTC
     _start_time = sqlalchemy.Column(sqlalchemy.Integer)
+    # Timestamp in UTC
     _finish_time = sqlalchemy.Column(sqlalchemy.Integer)
+    # id_kudago which has used for all series of events
     _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
+    # Unique _id of the latest event in the series
     _duplicate_id = sqlalchemy.Column(sqlalchemy.Integer)
+    # In integer rubles
     _price_min = sqlalchemy.Column(sqlalchemy.Integer)
+    # In integer rubles
     _price_max = sqlalchemy.Column(sqlalchemy.Integer)
 
     ratings = relationship("Rating", back_populates="event")
