@@ -32,7 +32,7 @@ class Router:
 
         # User add our chat bot to its messenger
         if self.type_user_message == "start":
-            from HelpAnswerMaker import HelpAnswerMaker
+            from answer_maker.HelpAnswerMaker import HelpAnswerMaker
             return HelpAnswerMaker(self.session, self.user, "Start", result_of_classification={})
 
         # Get result of NLP from Dialogflow
@@ -40,27 +40,27 @@ class Router:
         intent = result_of_classification['intent_name']
 
         if intent == "Greeting":
-            from GreetingAnswerMaker import GreetingAnswerMaker
+            from answer_maker.GreetingAnswerMaker import GreetingAnswerMaker
             return GreetingAnswerMaker(self.session, self.user, intent, result_of_classification)
 
         if intent == "Find events":
-            from FindEventsAnswerMaker import FindEventsAnswerMaker
+            from answer_maker.FindEventsAnswerMaker import FindEventsAnswerMaker
             return FindEventsAnswerMaker(self.session, self.user, intent, result_of_classification)
 
         if intent == "Like" or intent == "Dislike":
-            from LikeDislikeAnswerMaker import LikeDislikeAnswerMaker
+            from answer_maker.LikeDislikeAnswerMaker import LikeDislikeAnswerMaker
             return LikeDislikeAnswerMaker(self.session, self.user, intent, result_of_classification)
 
         if intent == 'Favorites':
-            from FavoritesAnswerMaker import FavoritesAnswerMaker
+            from answer_maker.FavoritesAnswerMaker import FavoritesAnswerMaker
             return FavoritesAnswerMaker(self.session, self.user, intent, result_of_classification)
 
         if intent == "Help":
-            from HelpAnswerMaker import HelpAnswerMaker
+            from answer_maker.HelpAnswerMaker import HelpAnswerMaker
             return HelpAnswerMaker(self.session, self.user, intent, result_of_classification)
 
         # If intent == Fallback or something else
-        from FallbackAnswerMaker import FallbackAnswerMaker
+        from answer_maker.FallbackAnswerMaker import FallbackAnswerMaker
         return FallbackAnswerMaker(self.session, self.user, intent, result_of_classification)
 
     def _get_classification_and_entities(self):

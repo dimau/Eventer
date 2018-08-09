@@ -1,4 +1,4 @@
-from AbstractAnswerMaker import AbstractAnswerMaker
+from answer_maker.AbstractAnswerMaker import AbstractAnswerMaker
 from Event import Event
 from User import User
 from Rating import Rating

@@ -1,4 +1,4 @@
-from AbstractAnswerMaker import AbstractAnswerMaker
+from answer_maker.AbstractAnswerMaker import AbstractAnswerMaker
 from Rating import Rating
 from Event import Event
 import logging

@@ -56,7 +56,7 @@ class TelegramView(AbstractView):
         """
         logging.debug('Enter to the method')
         not_like_button = KeyboardButton("\U0001F44E Следующее")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
-        like_button = KeyboardButton("\U0001F44D Нравится")
+        like_button = KeyboardButton("\U0001F44D Запомнить")
         favorites_button = KeyboardButton("Избранное")
         all_categories_button = KeyboardButton("Помощь")
         if data_for_answer.get("status", "unknown") == "one_event":

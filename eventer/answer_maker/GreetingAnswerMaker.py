@@ -1,4 +1,4 @@
-from AbstractAnswerMaker import AbstractAnswerMaker
+from answer_maker.AbstractAnswerMaker import AbstractAnswerMaker
 
 
 class GreetingAnswerMaker(AbstractAnswerMaker):
