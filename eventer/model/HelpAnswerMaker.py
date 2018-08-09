@@ -4,29 +4,29 @@ from AbstractAnswerMaker import AbstractAnswerMaker
 class HelpAnswerMaker(AbstractAnswerMaker):
 
     def __repr__(self):
-        return "<HelpAnswerMaker intent: {}, result_of_classification: {}>".format(self.intent, str(self.result_of_classification))
+        return "<HelpAnswerMaker intent: {}, result_of_classification: {}>".format(self.intent,
+                                                                                   str(self.result_of_classification))
 
     def get_answer(self):
         # Intent will be useful for view functions
         answer = {"intent": self.intent}
 
-        # Check sign (black) = \u2713
-        answer["text"] = "Я могу подсказать, куда сходить в Москве :)\n" \
-                         "Скажи, какая категория событий тебе интересна и на какую дату?\n\n" \
-                         "Я знаю про вот такие категории:\n" \
-                         "\U0001F4CC Концерты\n" \
-                         "\U0001F4CC Театр\n" \
-                         "\U0001F4CC Образовательные мероприятия\n" \
-                         "\U0001F4CC Вечеринки\n" \
-                         "\U0001F4CC Спортивные мероприятия\n" \
-                         "\U0001F4CC Выставки\n" \
-                         "\U0001F4CC Экскурсии\n" \
-                         "\U0001F4CC Фестивали\n" \
-                         "\U0001F4CC Кино\n" \
-                         "\U0001F4CC Игры\n" \
-                         "\U0001F4CC Быстрые свидания\n" \
-                         "\U0001F4CC Занятия танцами\n" \
-                         "\U0001F4CC Детские мероприятия\n" \
-                         "\U0001F4CC Стендап шоу"
+        # Special beginning for new user
+        if self.intent == "Start":
+            answer["text"] = "Привет! "
+        else:
+            answer["text"] = ""
+        answer["text"] += "Я подскажу, куда сходить в Москве :)\n\n" \
+                          "Можешь общаться со мной обычными фразами, указывая категорию событий и даты, которые тебе интересны:\n\n" \
+                          "- Куда сходить сегодня вечером\n" \
+                          "- Куда сходить в театр на выходных\n" \
+                          "- Кино завтра\n" \
+                          "- Спектакли в пятницу\n" \
+                          "- Куда пойти с ребенком на следующей неделе\n\n" \
+                          "Все понравившиеся события будут доступны в Избранном, " \
+                          "а не понравившиеся больше не будут показываться"
+        answer['message_buttons'] = ['Концерты', 'Театр', 'Образование', 'Вечеринки',
+                                     'Спорт', 'Выставки', 'Экскурсии', 'Фестивали', 'Кино', 'Игры',
+                                     'Знакомства', 'Танцы', 'Для детей', 'Стендап']
         answer["status"] = "none_event"
         return answer

@@ -1,4 +1,5 @@
 from telegram import ReplyKeyboardMarkup, KeyboardButton
+from telegram import InlineKeyboardMarkup, InlineKeyboardButton
 from AbstractView import AbstractView
 import logging
 
@@ -54,8 +55,8 @@ class TelegramView(AbstractView):
         :return:
         """
         logging.debug('Enter to the method')
-        not_like_button = KeyboardButton("\U0001F44E")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
-        like_button = KeyboardButton("\U0001F44D")
+        not_like_button = KeyboardButton("\U0001F44E Следующее")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
+        like_button = KeyboardButton("\U0001F44D Нравится")
         favorites_button = KeyboardButton("Избранное")
         all_categories_button = KeyboardButton("Помощь")
         if data_for_answer.get("status", "unknown") == "one_event":
@@ -67,6 +68,28 @@ class TelegramView(AbstractView):
                                               resize_keyboard=True,
                                               one_time_keyboard=True)
         return all_buttons
+
+    @staticmethod
+    def make_message_buttons(data_for_answer):
+        buttons_list = []
+        logging.debug('Enter to the method')
+        if 'message_buttons' not in data_for_answer.keys():
+            return None
+        max_buttons_in_line = 3
+        counter_buttons_in_line = 0
+        buttons_line = []
+        for button in data_for_answer['message_buttons']:
+            if counter_buttons_in_line == max_buttons_in_line:
+                counter_buttons_in_line = 0
+                buttons_list.append(buttons_line)
+                buttons_line = []
+            buttons_line.append(InlineKeyboardButton(text=button, callback_data=button))
+            counter_buttons_in_line += 1
+        if buttons_line:
+            buttons_list.append(buttons_line)
+        all_buttons = InlineKeyboardMarkup(buttons_list)
+        return all_buttons
+
 
     @staticmethod
     def is_not_allowed_images_preview(data_for_answer):

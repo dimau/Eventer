@@ -2,7 +2,7 @@
 
 import argparse
 import logging
-from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from User import User
@@ -32,6 +32,12 @@ class TelegramController:
 
     # Initialize user
     def get_user(self, update_from_telegram, session):
+        """
+        Function to get user from our database by its telegram id
+        :param update_from_telegram:
+        :param session:
+        :return:
+        """
         logging.debug("Enter to the method")
         user_telegram_id = self.extract_telegram_user_id(update_from_telegram)
         logging.info('user telegram id has extracted = %s', user_telegram_id)
@@ -45,13 +51,20 @@ class TelegramController:
             logging.info('Create a new user in database: %s', user)
         return user
 
-    # Handler for first command - start
     def start_command(self, bot, update_from_telegram):
+        """
+        Handler for first command - start
+        :param bot:
+        :param update_from_telegram:
+        :return:
+        """
         user_message_text = "start"
         type_user_message = "start"
         logging.info('User starts work with chat-bot: start_command')
         user = self.get_user(update_from_telegram, session)
-        text_answer, buttons_answer, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        if message_buttons:
+            buttons_answer = message_buttons
         status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
                                                      parse_mode='HTML',
                                                      text=text_answer,
@@ -59,14 +72,55 @@ class TelegramController:
                                                      disable_web_page_preview=image_preview)
         logging.info("Status of sending message from telegram: %s", status_of_sending_message)
 
-    # Handler for text message
     def text_message(self, bot, update_from_telegram):
+        """
+        Handler for text message from telegram user
+        :param bot:
+        :param update_from_telegram:
+        :return:
+        """
         user_message_text = update_from_telegram.message.text
         type_user_message = "text_message"
         logging.info('User write text message: %s', user_message_text)
         user = self.get_user(update_from_telegram, session)
-        text_answer, buttons_answer, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        if message_buttons:
+            buttons_answer = message_buttons
         status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
+                                                     parse_mode='HTML',
+                                                     text=text_answer,
+                                                     reply_markup=buttons_answer,
+                                                     disable_web_page_preview=image_preview)
+        logging.info("Status of sending message from telegram: %s", status_of_sending_message)
+
+    def callback_button_request(self, bot, update_from_telegram):
+        """
+        Handler for requests from pushing message buttons (callback buttons or inline buttons)
+        We suppose that push this button have to be the same like you write name of the button to the chat with bot
+        :param bot:
+        :param update_from_telegram:
+        :return:
+        """
+        # Take a callback data from pushed button as a message text
+        user_message_text = update_from_telegram.callback_query.data
+        type_user_message = "callback_button_message"
+        logging.info('User push message button: %s', user_message_text)
+
+        # Take user and data for answer
+        user = self.get_user(update_from_telegram, session)
+        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text,
+                                                                                          type_user_message, user)
+        # First priority for buttons showed with message
+        if message_buttons:
+            buttons_answer = message_buttons
+
+        # After the user presses an inline button, Telegram clients will display a progress bar until you call answer.
+        # It is, therefore, necessary to react by calling telegram.Bot.answer_callback_query even if no notification
+        # to the user is needed (e.g., without specifying any of the optional parameters).
+        update_from_telegram.callback_query.answer()
+
+        # Real answer for user
+        status_of_sending_message = bot.send_message(chat_id=update_from_telegram.callback_query.message.chat_id,
                                                      parse_mode='HTML',
                                                      text=text_answer,
                                                      reply_markup=buttons_answer,
@@ -84,8 +138,9 @@ class TelegramController:
         text_answer = TelegramView.make_text_answer_from_data(data_for_answer)
         logging.debug('Text for answer: %s', text_answer)
         buttons_answer = TelegramView.get_buttons_for_message(data_for_answer)
+        message_buttons = TelegramView.make_message_buttons(data_for_answer)
         image_preview = TelegramView.is_not_allowed_images_preview(data_for_answer)
-        return text_answer, buttons_answer, image_preview
+        return text_answer, buttons_answer, message_buttons, image_preview
 
 
 if __name__ == "__main__":
@@ -128,9 +183,11 @@ if __name__ == "__main__":
     # Создаем обработчики событий для телеграма
     start_command_handler = CommandHandler('start', controller.start_command)
     text_message_handler = MessageHandler(Filters.text, controller.text_message)
+    callback_button_handler = CallbackQueryHandler(controller.callback_button_request)
     # Добавляем обработчики событий для телеграма в диспетчер
     dispatcher.add_handler(start_command_handler)
     dispatcher.add_handler(text_message_handler)
+    dispatcher.add_handler(callback_button_handler)
     # Запускаем бесконечный цикл получения и обработки новых сообщений из телеграма
     updater.start_polling(clean=True)
     # Останавливаем бота, если были нажаты Ctrl + C

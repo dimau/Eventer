@@ -33,7 +33,7 @@ class Router:
         # User add our chat bot to its messenger
         if self.type_user_message == "start":
             from HelpAnswerMaker import HelpAnswerMaker
-            return HelpAnswerMaker(self.session, self.user, "Help", result_of_classification={})
+            return HelpAnswerMaker(self.session, self.user, "Start", result_of_classification={})
 
         # Get result of NLP from Dialogflow
         result_of_classification = self._get_classification_and_entities()
