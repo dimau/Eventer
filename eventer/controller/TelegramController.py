@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 
+import os
 import argparse
 import logging
 from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
@@ -145,8 +146,11 @@ class TelegramController:
 
 if __name__ == "__main__":
 
-    # Параметры для конфига системы
-    telegram_token = "524706088:AAGq3De-XCF-vb3-Z5NvScaoULoMAlosYO4"
+    # Get telegram_token from environment variable
+    telegram_token = os.environ.get("TELEGRAMTOKEN", None)
+    if not telegram_token:
+        logging.error("Cannot find environment variable TELEGRAMTOKEN")
+        raise KeyError("Cannot find environment variable TELEGRAMTOKEN")
 
     # Extracting parameters from command line
     # We are expecting launch by command like: 'python eventer/model/TelegramController.py --log=INFO'
@@ -162,33 +166,43 @@ if __name__ == "__main__":
 
     # Logging tuning
     logging.basicConfig(format='%(levelname)s - %(asctime)s - %(module)s - %(funcName)s - %(message)s',
-                        level=numeric_level
-                        # filename='/tmp/telegram_bot.log'
+                        level=numeric_level,
+                        filename='/tmp/telegram_bot.log'
                         )
 
-    # Создаем основные объекты для работы с телеграмом
+    # Create main objects for telegram working
     updater = Updater(token=telegram_token)
     dispatcher = updater.dispatcher
 
     # Start session with database
-    user_for_mysql = "eventer"
-    password_for_mysql = "Nhgbf86jmnIK"
+    user_for_mysql = os.environ.get("USERMYSQL", None)
+    if not user_for_mysql:
+        logging.error("Cannot find environment variable USERMYSQL")
+        raise KeyError("Cannot find environment variable USERMYSQL")
+    password_for_mysql = os.environ.get("PASSWORDMYSQL", None)
+    if not password_for_mysql:
+        logging.error("Cannot find environment variable PASSWORDMYSQL")
+        raise KeyError("Cannot find environment variable PASSWORDMYSQL")
+    name_of_database_for_mysql = os.environ.get("DATABASEMYSQL", None)
+    if not name_of_database_for_mysql:
+        logging.error("Cannot find environment variable DATABASEMYSQL")
+        raise KeyError("Cannot find environment variable DATABASEMYSQL")
     engine = sqlalchemy.create_engine(
-        "mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/eventer?charset=utf8", echo=False)
+        "mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/" + name_of_database_for_mysql + "?charset=utf8", echo=False)
     Session = sessionmaker(bind=engine)
     session = Session()
 
     controller = TelegramController(session)
 
-    # Создаем обработчики событий для телеграма
+    # Create handlers of telegram events
     start_command_handler = CommandHandler('start', controller.start_command)
     text_message_handler = MessageHandler(Filters.text, controller.text_message)
     callback_button_handler = CallbackQueryHandler(controller.callback_button_request)
-    # Добавляем обработчики событий для телеграма в диспетчер
+    # Add handlers of telegram events to dispatcher
     dispatcher.add_handler(start_command_handler)
     dispatcher.add_handler(text_message_handler)
     dispatcher.add_handler(callback_button_handler)
-    # Запускаем бесконечный цикл получения и обработки новых сообщений из телеграма
+    # Run endless cycle of getting new messages from telegram
     updater.start_polling(clean=True)
-    # Останавливаем бота, если были нажаты Ctrl + C
+    # Stop bot if Ctrl + C were pushed in console
     updater.idle()

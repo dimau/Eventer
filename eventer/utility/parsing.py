@@ -8,6 +8,7 @@ sys.path.append('/home/dimau777/projects/eventer/eventer/model/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/utility/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/view/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/parser/')
+import os
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from ParserFactory import ParserFactory
@@ -44,12 +45,21 @@ if not args.source:
     raise ValueError("There is NOT parameter with source name for parsing: --source")
 logging.info('start of parsing %s', args.source)
 
-# Parameters for future config file
-user_for_mysql = "eventer"
-password_for_mysql = "Nhgbf86jmnIK"
-
-# Create a session with database
-engine = sqlalchemy.create_engine("mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/eventer?charset=utf8", echo=False)
+# Start session with database
+user_for_mysql = os.environ.get("USERMYSQL", None)
+if not user_for_mysql:
+    logging.error("Cannot find environment variable USERMYSQL")
+    raise KeyError("Cannot find environment variable USERMYSQL")
+password_for_mysql = os.environ.get("PASSWORDMYSQL", None)
+if not password_for_mysql:
+    logging.error("Cannot find environment variable PASSWORDMYSQL")
+    raise KeyError("Cannot find environment variable PASSWORDMYSQL")
+name_of_database_for_mysql = os.environ.get("DATABASEMYSQL", None)
+if not name_of_database_for_mysql:
+    logging.error("Cannot find environment variable DATABASEMYSQL")
+    raise KeyError("Cannot find environment variable DATABASEMYSQL")
+engine = sqlalchemy.create_engine(
+    "mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/" + name_of_database_for_mysql + "?charset=utf8", echo=False)
 Session = sessionmaker(bind=engine)
 session = Session()
 

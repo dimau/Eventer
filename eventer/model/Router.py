@@ -1,3 +1,4 @@
+import os
 import apiai
 import json
 import logging
@@ -19,7 +20,11 @@ class Router:
         """
 
         # Initial data - token for working with dialogflow, text message, session with database
-        self.api_ai_token = "9f442ba7276d40d1aa64a32a156af507"
+        api_ai_token = os.environ.get("APIAITOKEN", None)
+        if not api_ai_token:
+            logging.error("Cannot find environment variable APIAITOKEN")
+            raise KeyError("Cannot find environment variable APIAITOKEN")
+        self.api_ai_token = api_ai_token
         self.user_message_text = user_message_text
         self.session = session_with_db
         self.user = user
