@@ -36,7 +36,7 @@ class TelegramView(AbstractView):
             text_answer += data_for_answer.get("text", "")
         if "list_of_events" in data_for_answer.keys():
             for event in data_for_answer["list_of_events"]:
-                text_answer += "\n\n\U0001F31F" + \
+                text_answer += "\n\n\u2B50" + \
                                " <a href='" + event.url + \
                                "' target='_blank'>" + \
                                event.title.capitalize() + \

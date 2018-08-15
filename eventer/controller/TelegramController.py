@@ -3,7 +3,7 @@
 import os
 import argparse
 import logging
-from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, Filters
+from telegram.ext import Updater, CommandHandler, MessageHandler, CallbackQueryHandler, InlineQueryHandler, Filters
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from User import User
@@ -80,14 +80,18 @@ class TelegramController:
         :param update_from_telegram:
         :return:
         """
+        if update_from_telegram.channel_post:
+            self._regular_checking_answering(bot, update_from_telegram)
+            return
         user_message_text = update_from_telegram.message.text
+        message_chat_id = update_from_telegram.message.chat_id
         type_user_message = "text_message"
         logging.info('User write text message: %s', user_message_text)
         user = self.get_user(update_from_telegram, session)
         text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text, type_user_message, user)
         if message_buttons:
             buttons_answer = message_buttons
-        status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
+        status_of_sending_message = bot.send_message(chat_id=message_chat_id,
                                                      parse_mode='HTML',
                                                      text=text_answer,
                                                      reply_markup=buttons_answer,
@@ -143,6 +147,23 @@ class TelegramController:
         image_preview = TelegramView.is_not_allowed_images_preview(data_for_answer)
         return text_answer, buttons_answer, message_buttons, image_preview
 
+    def inline_text(self, bot, update_from_telegram):
+        status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
+                                                     parse_mode='HTML',
+                                                     text="Я в таком режиме не умею работать")
+        logging.info("Status of sending message from telegram: %s", status_of_sending_message)
+
+    def _regular_checking_answering(self, bot, update_from_telegram):
+        """
+        Answer for monitoring chat bot (utility/monitoring.py)(from special channel) about this chat bot is answering
+        :param bot:
+        :return:
+        """
+        test_of_database = self.session.query(Event).first()
+        status_of_sending_message = bot.send_message(chat_id=update_from_telegram.channel_post.chat_id,
+                                                     parse_mode='HTML',
+                                                     text="Работает")
+        logging.info("Checking of working chat bot is OK: %s", status_of_sending_message)
 
 if __name__ == "__main__":
 
@@ -198,10 +219,12 @@ if __name__ == "__main__":
     start_command_handler = CommandHandler('start', controller.start_command)
     text_message_handler = MessageHandler(Filters.text, controller.text_message)
     callback_button_handler = CallbackQueryHandler(controller.callback_button_request)
+    inline_query_handler = InlineQueryHandler(controller.inline_text)
     # Add handlers of telegram events to dispatcher
     dispatcher.add_handler(start_command_handler)
     dispatcher.add_handler(text_message_handler)
     dispatcher.add_handler(callback_button_handler)
+    dispatcher.add_handler(inline_query_handler)
     # Run endless cycle of getting new messages from telegram
     updater.start_polling(clean=True)
     # Stop bot if Ctrl + C were pushed in console

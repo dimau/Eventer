@@ -4,10 +4,12 @@
 import sys
 sys.path.append('/home/dimau777/projects/eventer/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/answer_maker/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/controller/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/model/')
+sys.path.append('/home/dimau777/projects/eventer/eventer/parser/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/utility/')
 sys.path.append('/home/dimau777/projects/eventer/eventer/view/')
-sys.path.append('/home/dimau777/projects/eventer/eventer/parser/')
 import os
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
