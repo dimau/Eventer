@@ -53,10 +53,12 @@ class TelegramView(AbstractView):
             one_event - message about one event where user will have opportunity to chose like or dislike
         :param data_for_answer:
         :return:
+        \U0001F44E - THUMBS DOWN SIGN
+        \U0001F44D - THUMBS UP SIGN
         """
         logging.debug('Enter to the method')
-        not_like_button = KeyboardButton("\U0001F44E Следующее")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
-        like_button = KeyboardButton("\U0001F44D Запомнить")
+        not_like_button = KeyboardButton("\u27A1 Следующее")  # table of unicode symbols http://www.fileformat.info/info/unicode/char/1F44D/index.htm
+        like_button = KeyboardButton("\u2764 Запомнить")
         favorites_button = KeyboardButton("Избранное")
         all_categories_button = KeyboardButton("Помощь")
         if data_for_answer.get("status", "unknown") == "one_event":
