@@ -37,9 +37,9 @@ class AbstractAnswerMaker:
                 answer['datetime'].sort()
         else:
             answer['datetime'].append(event.start_time)
-        if event.price_min:
+        if event.price_min is not None:
             answer['price_min'] = event.price_min
-        if event.price_max:
+        if event.price_max is not None:
             answer['price_max'] = event.price_max
         answer["url"] = event.url
         answer["img"] = event.image

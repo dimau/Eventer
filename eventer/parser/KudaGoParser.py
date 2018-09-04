@@ -79,7 +79,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         event_common_parameters['categories_kudago'] = self.convert_from_iterator_to_string(item['categories'])
         event_common_parameters['tags_kudago'] = item['tags']
         event_common_parameters['price_kudago'] = item['price']
-        event_common_parameters['price_min'], event_common_parameters['price_max'] = self._get_price_from_string(item['price'])
+        event_common_parameters['price_min'], event_common_parameters['price_max'] = self._get_price_from_string(item['price'], item['is_free'])
         event_common_parameters['categories'] = self._convert_from_source_type_list_to_inner_type_set(item['categories'])
         if len(item['images']) > 0:
             event_common_parameters['image'] = item['images'][0]['image']
@@ -105,11 +105,17 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         return events
 
     @staticmethod
-    def _get_price_from_string(source_price_string):
+    def _get_price_from_string(source_price_string, is_free):
         # Initialization
         price_min = None
         price_max = None
         if not source_price_string or not isinstance(source_price_string, str):
+            return price_min, price_max
+
+        # Like is_free == true
+        if is_free:
+            price_min = 0
+            price_max = 0
             return price_min, price_max
 
         # Like "от 500 до 700 рублей" or "от 500 руб."

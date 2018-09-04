@@ -20,7 +20,9 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         logging.info("Required time period: %s - %s or %s - %s", start_timestamp, finish_timestamp,
                      datetime.datetime.fromtimestamp(start_timestamp),
                      datetime.datetime.fromtimestamp(finish_timestamp))
-        relevant_events = self._get_sorted_events_for_conditions(start_timestamp, finish_timestamp, target_categories)
+        free_of_charge = True if self.result_of_classification['free_or_not'] == "free" else False
+        logging.info("Free_of_charge: %s", free_of_charge)
+        relevant_events = self._get_sorted_events_for_conditions(start_timestamp, finish_timestamp, target_categories, free_of_charge)
         logging.debug('Sorted list of relevant events: %s', relevant_events)
         logging.info('Size of sorted list of relevant events: %s', len(relevant_events))
         if not relevant_events:
@@ -164,12 +166,13 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         """
         return start_timestamp - 3600 * 3, finish_timestamp - 3600 * 3  # only for Moscow timezone
 
-    def _get_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
+    def _get_events_for_conditions(self, start_timestamp, finish_timestamp, categories, free_of_charge):
         """
         Return set of events that is fitting for user request by category, date and other conditions (NOT SORTED BY RELEVANCE)!!!
         :param start_timestamp:
         :param finish_timestamp:
         :param categories:
+        :param free_of_charge: bool (True - only free of charge events, False - all events)
         :return: set of Events
         """
         relevant_events = set()
@@ -186,9 +189,22 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                 Event._start_time <= finish_timestamp
             ).all())
         logging.info("Size of set of relevant events: %s", len(relevant_events))
+        if free_of_charge:
+            relevant_events = self._remove_chargeable_events(relevant_events)
         relevant_events = self._replace_duplicates_for_main_event(relevant_events)
         relevant_events = self._remove_evaluated_events(relevant_events)
         return relevant_events
+
+    def _remove_chargeable_events(self, relevant_events):
+        result_set_of_events = set()
+        removed_events = []
+        for event in relevant_events:
+            if event.price_min == 0 and event.price_max == 0:
+                result_set_of_events.add(event)
+            else:
+                removed_events.append(event.event_id)
+        logging.info('Removed chargeable events: %s', removed_events)
+        return result_set_of_events
 
     def _remove_evaluated_events(self, relevant_events):
         ids_evaluated_events = set()
@@ -201,7 +217,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                 removed_events.append(event.event_id)
                 continue
             result_set_of_events.add(event)
-        logging.info('Removed events: %s', removed_events)
+        logging.info('Removed events (amount = %s): %s', len(removed_events), removed_events)
         return result_set_of_events
 
     def _replace_duplicates_for_main_event(self, relevant_events):
@@ -223,10 +239,10 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             main_event = self.session.query(Event).filter(Event._id == event.duplicate_id).first()
             id_main_events.add(main_event.event_id)
             result_set_of_events.add(main_event)
-        logging.info('Replaced duplicate events: %s', duplicate_events)
+        logging.info('Replaced duplicate events (amount = %s): %s', len(duplicate_events), duplicate_events)
         return result_set_of_events
 
-    def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories):
+    def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories, free_of_charge):
         """
         Return sorted list of relevant events that is fitting for user request
         MAXIMUM 100 events per time
@@ -235,7 +251,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         :param categories:
         :return: sorted list of Events
         """
-        relevant_events = self._get_events_for_conditions(start_timestamp, finish_timestamp, categories)
+        relevant_events = self._get_events_for_conditions(start_timestamp, finish_timestamp, categories, free_of_charge)
         return list(relevant_events)[0:100]  # we will return for one time only 100 most relevant events
 
     @staticmethod

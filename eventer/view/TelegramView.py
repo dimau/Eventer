@@ -14,7 +14,9 @@ class TelegramView(AbstractView):
     def make_text_answer_from_data(data_for_answer):
         logging.debug('Enter to the method')
         text_answer = ""
-        if "price_min" in data_for_answer.keys() and "price_max" in data_for_answer.keys() and data_for_answer['price_min'] == data_for_answer['price_max']:
+        if "price_min" in data_for_answer.keys() and "price_max" in data_for_answer.keys() and data_for_answer['price_min'] == 0 and data_for_answer['price_max'] == 0:
+            string_price = " бесплатно"
+        elif "price_min" in data_for_answer.keys() and "price_max" in data_for_answer.keys() and data_for_answer['price_min'] == data_for_answer['price_max']:
             string_price = " " + str(data_for_answer['price_min']) + " руб"
         elif "price_min" in data_for_answer.keys():
             string_price = " от " + str(data_for_answer['price_min']) + " руб"
