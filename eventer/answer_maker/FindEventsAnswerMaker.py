@@ -1,6 +1,7 @@
 from answer_maker.AbstractAnswerMaker import AbstractAnswerMaker
 from Event import Event
 from Rating import Rating
+from Sorter import Sorter
 import datetime
 import logging
 
@@ -173,7 +174,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         :param finish_timestamp:
         :param categories:
         :param free_of_charge: bool (True - only free of charge events, False - all events)
-        :return: set of Events
+        :return: list of Events
         """
         relevant_events = set()
         if len(categories) != 0:  # if user writes something about categories
@@ -193,7 +194,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             relevant_events = self._remove_chargeable_events(relevant_events)
         relevant_events = self._replace_duplicates_for_main_event(relevant_events)
         relevant_events = self._remove_evaluated_events(relevant_events)
-        return relevant_events
+        return list(relevant_events)
 
     def _remove_chargeable_events(self, relevant_events):
         result_set_of_events = set()
@@ -252,7 +253,18 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         :return: sorted list of Events
         """
         relevant_events = self._get_events_for_conditions(start_timestamp, finish_timestamp, categories, free_of_charge)
-        return list(relevant_events)[0:100]  # we will return for one time only 100 most relevant events
+        matrix_events_features = []
+        matrix_events_features.append(relevant_events)
+        matrix_events_features.append(Sorter.get_scores_all_users_favorites_events(relevant_events))
+        matrix_events_features.append(Sorter.get_scores_children_events(relevant_events))
+        matrix_events_features.append(Sorter.get_scores_free_events(relevant_events))
+        matrix_events_features.append(Sorter.get_scores_user_favorite_categories(relevant_events))
+        matrix_events_features = Sorter.pivot_matrix(matrix_events_features)
+        matrix_events_features = Sorter.calculate_relevance(matrix_events_features)
+        sorted_events_plus_relevance = Sorter.sort_by_relevance(matrix_events_features)
+        sorted_events_plus_relevance = Sorter.sort_by_datetime(sorted_events_plus_relevance)
+        sorted_events = Sorter.sort_for_diversity(sorted_events_plus_relevance)
+        return sorted_events[0:100]  # we will return for one time only 100 most relevant events
 
     @staticmethod
     def _get_id_for_events_in_iterator(iterator):
