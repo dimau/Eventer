@@ -54,7 +54,8 @@ class Event(Base, FormattingDataRepresentation):
         self._price_max = source_dict.get('price_max', None)
 
     def __repr__(self):
-        return '<Event title: {}, ' \
+        return '<Event id: {} ' \
+               'title: {}, ' \
                'description: {}, ' \
                'id_kudago: {}, ' \
                'categories_kudago: {}, ' \
@@ -68,7 +69,8 @@ class Event(Base, FormattingDataRepresentation):
                'duplicate_source_id: {},' \
                'duplicate_id: {},' \
                'price_min: {},' \
-               'price_max: {}>'.format(self._title,
+               'price_max: {}>'.format(self._id,
+                                       self._title,
                                        self._description,
                                        self._id_kudago,
                                        self._categories_kudago,

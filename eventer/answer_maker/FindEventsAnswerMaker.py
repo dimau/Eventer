@@ -12,10 +12,12 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         return "<FindEventsAnswerMaker intent: {}, result_of_classification: {}>".format(self.intent, str(self.result_of_classification))
 
     def get_answer(self):
+
         # Intent will be useful for view functions
         answer = {"intent": self.intent}
 
-        target_categories = self._get_categories_for_type_of_action(self.result_of_classification['type-of-action'])
+        # Prepare all necessary data
+        target_categories = self._get_categories_for_type_of_action()
         logging.info("Target categories: %s", target_categories)
         start_timestamp, finish_timestamp = self._get_required_time_period()
         logging.info("Required time period: %s - %s or %s - %s", start_timestamp, finish_timestamp,
@@ -23,7 +25,12 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
                      datetime.datetime.fromtimestamp(finish_timestamp))
         free_of_charge = True if self.result_of_classification['free_or_not'] == "free" else False
         logging.info("Free_of_charge: %s", free_of_charge)
-        relevant_events = self._get_sorted_events_for_conditions(start_timestamp, finish_timestamp, target_categories, free_of_charge)
+        with_who = self.result_of_classification['with_who']
+        logging.info("With_who: %s", with_who)
+
+        # Extracting sorted relevant events
+        relevant_events = self._get_sorted_events_for_conditions(start_timestamp, finish_timestamp,
+                                                                 target_categories, free_of_charge, with_who)
         logging.debug('Sorted list of relevant events: %s', relevant_events)
         logging.info('Size of sorted list of relevant events: %s', len(relevant_events))
         if not relevant_events:
@@ -33,14 +40,13 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             return answer
         answer.update(self.make_one_event_data_card(relevant_events[0]))
 
-        # We have to save the sorted list of relevant events for user
+        # We have to save the sorted list of relevant events for the user
         self.user.last_queue_events = self._get_id_for_events_in_iterator(relevant_events)
         self.session.add(self.user)
         self.session.commit()
         return answer
 
-    @staticmethod
-    def _get_categories_for_type_of_action(type_of_action):
+    def _get_categories_for_type_of_action(self):
         """
         Список возможных типов действий, которые мы можем распознать во фразе пользователя задается в dialogflow
         Этот список может отличаться от набора тегов, присваиваемых событиям в базе данных, так как
@@ -51,6 +57,8 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         :param type_of_action:
         :return:
         """
+
+        type_of_action = self.result_of_classification['type-of-action']
 
         if type_of_action == "":
             return set()
@@ -111,7 +119,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)  # begin of current date
             finish_date = start_date
         else:
-            start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month,datetime.datetime.now().day)  # begin of current date
+            start_date = datetime.datetime(datetime.datetime.now().year, datetime.datetime.now().month, datetime.datetime.now().day)  # begin of current date
             finish_date = start_date + datetime.timedelta(weeks=4)
 
         # Manage with time
@@ -243,7 +251,7 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         logging.info('Replaced duplicate events (amount = %s): %s', len(duplicate_events), duplicate_events)
         return result_set_of_events
 
-    def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories, free_of_charge):
+    def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories, free_of_charge, with_who):
         """
         Return sorted list of relevant events that is fitting for user request
         MAXIMUM 100 events per time
@@ -253,17 +261,8 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         :return: sorted list of Events
         """
         relevant_events = self._get_events_for_conditions(start_timestamp, finish_timestamp, categories, free_of_charge)
-        matrix_events_features = []
-        matrix_events_features.append(relevant_events)
-        matrix_events_features.append(Sorter.get_scores_all_users_favorites_events(relevant_events))
-        matrix_events_features.append(Sorter.get_scores_children_events(relevant_events))
-        matrix_events_features.append(Sorter.get_scores_free_events(relevant_events))
-        matrix_events_features.append(Sorter.get_scores_user_favorite_categories(relevant_events))
-        matrix_events_features = Sorter.pivot_matrix(matrix_events_features)
-        matrix_events_features = Sorter.calculate_relevance(matrix_events_features)
-        sorted_events_plus_relevance = Sorter.sort_by_relevance(matrix_events_features)
-        sorted_events_plus_relevance = Sorter.sort_by_datetime(sorted_events_plus_relevance)
-        sorted_events = Sorter.sort_for_diversity(sorted_events_plus_relevance)
+        sorter = Sorter(self.session, self.user, relevant_events, categories, free_of_charge, with_who)
+        sorted_events = sorter.get_sorted_events()
         return sorted_events[0:100]  # we will return for one time only 100 most relevant events
 
     @staticmethod
