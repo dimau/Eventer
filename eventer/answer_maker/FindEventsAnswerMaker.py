@@ -31,7 +31,6 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
         # Extracting sorted relevant events
         relevant_events = self._get_sorted_events_for_conditions(start_timestamp, finish_timestamp,
                                                                  target_categories, free_of_charge, with_who)
-        logging.debug('Sorted list of relevant events: %s', relevant_events)
         logging.info('Size of sorted list of relevant events: %s', len(relevant_events))
         if not relevant_events:
             answer["text"] = "Я не нашел новых событий под эти условия, давайте поищем что-нибудь еще?"
@@ -248,7 +247,8 @@ class FindEventsAnswerMaker(AbstractAnswerMaker):
             main_event = self.session.query(Event).filter(Event._id == event.duplicate_id).first()
             id_main_events.add(main_event.event_id)
             result_set_of_events.add(main_event)
-        logging.info('Replaced duplicate events (amount = %s): %s', len(duplicate_events), duplicate_events)
+        logging.info('Replaced duplicate events (amount of duplicates = %s, amount of remaining events = %s): %s',
+                     len(duplicate_events), len(result_set_of_events), duplicate_events)
         return result_set_of_events
 
     def _get_sorted_events_for_conditions(self, start_timestamp, finish_timestamp, categories, free_of_charge, with_who):

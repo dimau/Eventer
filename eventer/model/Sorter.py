@@ -170,7 +170,6 @@ class Sorter:
 
     def _calculate_relevance(self, matrix_events_features):
         matrix_events_relevance = []
-        matrix_for_logging = []
         for item in matrix_events_features:
             event = item[0]
             scores_all_users_favorites_events = item[1]
@@ -179,18 +178,42 @@ class Sorter:
             scores_user_favorite_categories = item[4]
             relevance = 30 * scores_all_users_favorites_events - 3 * scores_children_events + 3 * scores_free_events + 50 * scores_user_favorite_categories
             matrix_events_relevance.append((event, relevance))
-            matrix_for_logging.append((event.event_id, relevance))
-        logging.debug("Matrix events - relevance: %s", matrix_for_logging)
+        logging.debug("Matrix events - relevance: %s", self._get_matrix_events_id_relevance_for_logging(matrix_events_relevance))
         return matrix_events_relevance
 
     def _sort_by_relevance(self, matrix_events_relevance):
-        pass
+        sorted_matrix = sorted(matrix_events_relevance, key=lambda x: x[1], reverse=True)
+        logging.debug("Sorted matrix events - relevance: %s", self._get_matrix_events_id_relevance_for_logging(sorted_matrix))
+        return sorted_matrix
 
-    def _sort_by_datetime(self, sorted_events_plus_relevance):
-        pass
+    def _sort_by_datetime(self, matrix_events_relevance):
+        """
+        If several events have the same relevance we have sort them by start datetime: the earliest is more important
+        :param matrix_events_relevance:
+        :return: sorted matrix_events_relevance
+        """
+        sorted_matrix_events_relevance = []
+        current_position = 0
+        maximum_position = len(matrix_events_relevance) - 1
+        while current_position <= maximum_position:
+            sorted_slice = []
+            sorted_slice.append(matrix_events_relevance[current_position])
+            while current_position + 1 <= maximum_position and matrix_events_relevance[current_position][1] == matrix_events_relevance[current_position + 1][1]:
+                sorted_slice.append(matrix_events_relevance[current_position + 1])
+                current_position += 1
+            sorted_slice = sorted(sorted_slice, key=lambda x: x[0].start_time)
+            sorted_matrix_events_relevance += sorted_slice
+            current_position += 1
+        logging.debug("Sorted by start datetime matrix events - relevance: %s",
+                      self._get_matrix_events_id_start_time_relevance_for_logging(sorted_matrix_events_relevance))
+        return sorted_matrix_events_relevance
 
-    def _sort_for_diversity(self, sorted_events_plus_relevance):
-        pass
+    def _sort_for_diversity(self, matrix_events_relevance):
+        # TODO: if we have several events of the same relevance but different categories we can mix them to make more varied list of events
+        sorted_events = []
+        for item in matrix_events_relevance:
+            sorted_events.append(item[0])
+        return sorted_events
 
     def _get_all_event_ids_in_list(self):
         event_ids = []
@@ -207,3 +230,15 @@ class Sorter:
         for event in self._events:
             events_ids.append(event.event_id)
         return events_ids
+
+    def _get_matrix_events_id_relevance_for_logging(self, matrix_events_relevance):
+        result = []
+        for item in matrix_events_relevance:
+            result.append((item[0].event_id, item[1]))
+        return result
+
+    def _get_matrix_events_id_start_time_relevance_for_logging(self, matrix_events_relevance):
+        result = []
+        for item in matrix_events_relevance:
+            result.append((item[0].event_id, item[0].start_time, item[1]))
+        return result
