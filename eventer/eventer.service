@@ -1,0 +1,11 @@
+[Unit]
+Description=uWSGI instance to serve eventer uwsgi project
+After=network.target
+[Service]
+User=eventer-user
+Group=www-data
+WorkingDirectory=/home/dimau777/projects/eventer/eventer
+# Environment="PYTONPATH=/home/dimau777/projects/eventer/:/home/dimau777/projects/eventer/eventer/:/home/dimau777/projects/eventer/eventer/model/:/home/dimau777/projects/eventer/eventer/utility/:/home/dimau777/projects/eventer/eventer/view/:/home/dimau777/projects/eventer/eventer/controller/:/home/dimau777/projects/eventer/eventer/answer_maker/:/home/dimau777/projects/eventer-test/:/home/dimau777/projects/eventer-test/eventer/:/home/dimau777/projects/eventer-test/eventer/model/:/home/dimau777/projects/eventer-test/eventer/utility/:/home/dimau777/projects/eventer-test/eventer/view/:/home/dimau777/projects/eventer-test/eventer/controller/:/home/dimau777/projects/eventer-test/eventer/answer_maker/"
+ExecStart=/home/dimau777/projects/eventer/eventer-venv/bin/uwsgi --ini uwsgi.ini
+[Install]
+WantedBy=multi-user.target
