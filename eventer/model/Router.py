@@ -10,13 +10,13 @@ class Router:
     database, and it's more convenient to have session object and user object in instance of this class
     """
 
-    def __init__(self, user_message_text="", session_with_db=None, user=None, type_user_message="text_message"):
+    def __init__(self, user_message_text="", session_with_db=None, user=None, type_user_message="_text_message"):
         """
         Constructor for class Router
         :param user_message_text: text from messenger or another source from user
         :param session_with_db: session sqlalchemy to work with database
         :param user: object of class User with information about user
-        :param type_user_message: start = new user add our chat bot; text_message - usual text message from user
+        :param type_user_message: start = new user add our chat bot; _text_message - usual text message from user
         """
 
         # Initial data - token for working with dialogflow, text message, session with database
