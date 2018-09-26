@@ -14,7 +14,7 @@ class AbstractController:
             raise ValueError("Invalid log level: {}".format(log_level))
         logging.basicConfig(format='%(levelname)s - %(asctime)s - %(module)s - %(funcName)s - %(message)s',
                             level=numeric_level,
-                            filename='/tmp/' + log_file_name
+                            filename='/var/log/eventer/' + log_file_name
                             )
 
     def _create_session_with_db(self):
