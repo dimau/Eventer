@@ -38,7 +38,7 @@ if not isinstance(numeric_level, int):
 # Logging tuning
 logging.basicConfig(format='%(levelname)s - %(asctime)s - %(module)s - %(funcName)s - %(message)s',
                     level=numeric_level,
-                    filename='/tmp/parsing.log'
+                    filename='/var/log/eventer/parsing.log'
                     )
 
 # Check for source for parsing
