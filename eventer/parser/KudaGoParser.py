@@ -25,8 +25,8 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
     def _make_url(self, page):
         """
-        Собирает урл для получения страницы со списком мероприятий
-        Url example: https://kudago.com/public-api/v1.4/events/?lang=ru&page_size=100&order_by=-publication_date&text_format=html&location=msk&is_free=0&fields=id,publication_date,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&page=1
+        Making url for getting page with events
+        Url example you can see at a test file
         :return:
         """
         logging.debug('Enter to the method')
@@ -54,7 +54,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
     def _list_parser(self, url_content):
         """
-        Метод возвращает коллекцию из событий с данной страницы
+        Getting list of events from giving page content
         :return: 
         """
         logging.debug('Enter to the method')

@@ -10,7 +10,7 @@ class AbstractParser:
     def __init__(self, session):
         self._session = session
 
-    def main(self, mode='only_new'):
+    def main(self, mode='only_new', parsing_pointer=None):
         """
         This method downloads list of events from source (in cycle with parameter page number)
         and save new data to database while we face parsing pointer (it means, that we have reached last successfully
@@ -20,7 +20,8 @@ class AbstractParser:
         # Define last event from previous parsing session.
         # If we use 'only_new' mode, when we reach it, we will stop parsing.
         # If we use 'full' mode, we have update it's value
-        parsing_pointer = self._create_parsing_pointer()
+        if not parsing_pointer:
+            parsing_pointer = self._create_parsing_pointer()
         self._session.add(parsing_pointer)
         previous_parsing_pointer_value = parsing_pointer.current_pointer
 
