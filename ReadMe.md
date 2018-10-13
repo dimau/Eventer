@@ -6,4 +6,4 @@ You can check data for any test localhost url in eventer/test/flask_test_server.
 
 You can check data by browser using address from flask_test_server.py (for example):
 
-`http://127.0.0.1:5000/kudago_one_event/`
+`http://127.0.0.1:5000/?source=kudago&testcase=one_event&page=1`

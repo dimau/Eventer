@@ -32,24 +32,34 @@ class AbstractParser:
         already_saved_event_in_collection = False
         while True:
             logging.info('New page number = %s', page_number)
+
+            # Make an url for parsing
             url = self._make_url(page=page_number, test_url=test_url)
             logging.info('Url for parsing: %s', url)
+
+            # Get url content and stop parsing if we have got not 200 code or empty page or something like this
             url_content = self._get_url_content(url)
+            if self._is_bad_page(url_content):
+                break
+
+            # Get list of events (every event in the list is in source format)
             events_collection_source = self._list_parser(url_content)
             logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
             # Look over all events from list and create normalize dictionary for every event
             events_collection_normalized = []
             for item in events_collection_source:
+
+                # Parsing of one event in the list into list of related dictionaries with event parameters
                 events = self._item_parser(item)
                 logging.debug('Event dictionary after item parsing: %s', events)
 
-                # Check parsing pointer for every event to avoid duplicates in database
-                if self._check_parsing_pointer(events[0], previous_parsing_pointer_value):
-                    logging.info('Checked parsing pointer, we have already handled this event')
+                # Check is this event in database already for every event to avoid duplicates in database
+                if self._check_is_this_event_in_db_already(mode, previous_parsing_pointer_value, events[0]):
+                    logging.info('We have already handled this event')
                     already_saved_event_in_collection = True
                     continue
-                logging.info('Checked parsing pointer, it is a new event')
+                logging.info('It is a new event')
                 events_collection_normalized += events
 
             # Save new parsing pointer - only in the beginning of this iteration of parsing
@@ -68,11 +78,14 @@ class AbstractParser:
             # Save new set of events to database
             self._write_events_to_db(events_collection_normalized)
 
+            # For mode = "only_new"
             # List of events from source has to be sorted by field where is value for parsing pointer.
             # If we have an event more than parsing pointer, it means that we work with event was
             # parsed last time and we don't have to continue
-            # TODO: add method that can help me understand that this was the last page add use the same for test cases, after that I can delete "or test_url"
-            if already_saved_event_in_collection or page_number == 10 or test_url:
+            if mode == "only_new" and already_saved_event_in_collection:
+                break
+            # It can prevent DDOS attack for the source file
+            if page_number == 1000:
                 break
 
             page_number += 1
@@ -80,26 +93,34 @@ class AbstractParser:
             # Add sleep to don't ddos attack source server
             time.sleep(1)
 
+        # For test purpose - we can check how many pages we have handled
+        return page_number
+
     def _create_parsing_pointer(self):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     def _make_url(self, page, test_url):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _get_url_content(self, url):
+    @staticmethod
+    def _get_url_content(url):
         """
         Return object Request with full HTML (or JSON dictionary for KudaGo) for url
         :param url:
         :return:
         """
         logging.debug('Enter to the method')
-        # TODO: make retries for request
         with requests.get(url) as req:
             logging.info('status code %s, number of symbols in text: %s', req.status_code, len(req.text))
-            if req.status_code == 200:
-                return req
-            logging.error('status code != 200')
-            raise RuntimeError("We can't get content from url: " + url + " status code: " + str(req.status_code))
+            return req
+
+    @staticmethod
+    def _is_bad_page(url_content):
+        logging.debug('Enter to the method')
+        if url_content.status_code != 200:
+            logging.error('Stop parsing. Status code == %s', url_content.status_code)
+            return True
+        return False
 
     def _list_parser(self, url_content):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
@@ -110,10 +131,28 @@ class AbstractParser:
     def _item_parser(self, item):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
+    def _check_is_this_event_in_db_already(self, mode, previous_parsing_pointer_value, event_dictionary):
+        """
+        Return True if this event is already in the database
+        Return False if this event is new
+        :param mode:
+        :param previous_parsing_pointer_value:
+        :param event_dictionary:
+        :return:
+        """
+        if mode == "only_new" and self._check_parsing_pointer(event_dictionary, previous_parsing_pointer_value):
+            return True
+        if mode == "full":
+            same_event_in_db = self._session.query(Event).filter(Event._url == event_dictionary['url']).first()
+            if same_event_in_db:
+                return True
+            return False
+
     def _new_parsing_pointer(self, event_dictionary):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _remove_already_finished_events(self, events):
+    @staticmethod
+    def _remove_already_finished_events(events):
         result = []
         # TODO: refactoring 3 - will have be in config file
         current_timestamp = (datetime.datetime.now() + datetime.timedelta(

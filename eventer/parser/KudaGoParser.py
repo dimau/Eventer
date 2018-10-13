@@ -1,5 +1,6 @@
 from AbstractParser import AbstractParser
 from ParsingPointer import ParsingPointer
+from Event import Event
 from FormattingDataRepresentation import FormattingDataRepresentation
 import copy
 import logging
@@ -13,6 +14,13 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         return parsing_pointer
 
     def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
+        """
+        Return True if this event is already in the database (publication_date of the event is less than parsing_pointer)
+        Return False if this event is new (publication_date of the event is more than parsing_pointer)
+        :param event_dictionary:
+        :param previous_parsing_pointer_value:
+        :return:
+        """
         logging.info('Enter to the method, item["publication_date"]: %s, previous_parsing_pointer_value: %s', event_dictionary['publication_date'], previous_parsing_pointer_value)
         if previous_parsing_pointer_value is None:
             return False
@@ -33,7 +41,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
         # For test running this method has to return giving test url (usually localhost url for test page)
         if test_url:
-            return test_url
+            return test_url + "&page=" + str(page)
 
         url_template = 'https://kudago.com/public-api/v1.4/events/?' \
                        'lang=%(lang)s&' \

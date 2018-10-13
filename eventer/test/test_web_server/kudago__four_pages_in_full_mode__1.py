@@ -1,4 +1,6 @@
-json_response = """
+status = 200
+mimetype = 'application/json; charset=utf-8'
+resp = """
 {
   "count": 61860,
   "next": "https://kudago.com/public-api/v1.4/events/?fields=id%2Cpublication_date%2Cdates%2Ctitle%2Cshort_title%2Cslug%2Cplace%2Cdescription%2Cbody_text%2Clocation%2Ccategories%2Ctagline%2Cage_restriction%2Cprice%2Cis_free%2Cimages%2Cfavorites_count%2Ccomments_count%2Csite_url%2Ctags%2Cparticipants&is_free=0&lang=ru&location=msk&order_by=-publication_date&page=2&page_size=100&text_format=html",
