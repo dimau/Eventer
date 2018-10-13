@@ -10,18 +10,20 @@ class AbstractParser:
     def __init__(self, session):
         self._session = session
 
-    def main(self, mode='only_new', parsing_pointer=None):
+    def main(self, mode='only_new', test_url=None):
         """
         This method downloads list of events from source (in cycle with parameter page number)
         and save new data to database while we face parsing pointer (it means, that we have reached last successfully
         handled event from this source)
+        :param mode: 'only_new' = mode of working parser, when parser get only new events until the parsing pointer value
+                     'full' = mode of working parser, when parser get all events
+        :param test_url: you can transmit test url for testing purpose, in this case _make_url() will use this url (usually localhost url)
         :return:
         """
         # Define last event from previous parsing session.
         # If we use 'only_new' mode, when we reach it, we will stop parsing.
         # If we use 'full' mode, we have update it's value
-        if not parsing_pointer:
-            parsing_pointer = self._create_parsing_pointer()
+        parsing_pointer = self._create_parsing_pointer()
         self._session.add(parsing_pointer)
         previous_parsing_pointer_value = parsing_pointer.current_pointer
 
@@ -30,7 +32,7 @@ class AbstractParser:
         already_saved_event_in_collection = False
         while True:
             logging.info('New page number = %s', page_number)
-            url = self._make_url(page=page_number)
+            url = self._make_url(page=page_number, test_url=test_url)
             logging.info('Url for parsing: %s', url)
             url_content = self._get_url_content(url)
             events_collection_source = self._list_parser(url_content)
@@ -69,7 +71,8 @@ class AbstractParser:
             # List of events from source has to be sorted by field where is value for parsing pointer.
             # If we have an event more than parsing pointer, it means that we work with event was
             # parsed last time and we don't have to continue
-            if already_saved_event_in_collection or page_number == 10:
+            # TODO: add method that can help me understand that this was the last page add use the same for test cases, after that I can delete "or test_url"
+            if already_saved_event_in_collection or page_number == 10 or test_url:
                 break
 
             page_number += 1
@@ -80,7 +83,7 @@ class AbstractParser:
     def _create_parsing_pointer(self):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _make_url(self, page):
+    def _make_url(self, page, test_url):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     def _get_url_content(self, url):

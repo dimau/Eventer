@@ -23,13 +23,18 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
     def _new_parsing_pointer(self, event_dictionary):
         return str(event_dictionary["publication_date"])
 
-    def _make_url(self, page):
+    def _make_url(self, page, test_url):
         """
         Making url for getting page with events
         Url example you can see at a test file
         :return:
         """
         logging.debug('Enter to the method')
+
+        # For test running this method has to return giving test url (usually localhost url for test page)
+        if test_url:
+            return test_url
+
         url_template = 'https://kudago.com/public-api/v1.4/events/?' \
                        'lang=%(lang)s&' \
                        'page_size=%(page_size)s&' \
