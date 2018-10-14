@@ -44,6 +44,8 @@ class AbstractParser:
 
             # Get list of events (every event in the list is in source format)
             events_collection_source = self._list_parser(url_content)
+            if not events_collection_source:
+                break
             logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
             # Look over all events from list and create normalize dictionary for every event

@@ -68,10 +68,15 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
     def _list_parser(self, url_content):
         """
         Getting list of events from giving page content
-        :return: 
+        :param url_content: object of response from requests.get(url)
+        :return: list of events in JSON or None
         """
         logging.debug('Enter to the method')
-        url_content_json = url_content.json()
+        try:
+            url_content_json = url_content.json()
+        except Exception as e:
+            logging.error("Bad url content: %s error: %s", url_content, e)
+            return None
         return url_content_json['results']
 
     def _item_parser(self, item):

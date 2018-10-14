@@ -77,6 +77,13 @@ class TestKudaGoParser:
         events_from_db = session.query(Event).all()
         assert len(events_from_db) == 2
 
+    def test_parsing_page_with_bad_json_format_in_full_mode(self, session, clear_data):
+        parser = KudaGoParser(session)
+        assert parser.main(mode='full',
+                           test_url="http://127.0.0.1:5000?source=kudago&testcase=page_with_bad_json_format") == 1
+        events_from_db = session.query(Event).all()
+        assert len(events_from_db) == 0
+
     def test_make_url_for_first_page(self, session, clear_data):
         parser = KudaGoParser(session)
         assert parser._make_url(page=1,

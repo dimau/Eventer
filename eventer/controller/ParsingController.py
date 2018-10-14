@@ -29,12 +29,14 @@ class ParsingController(AbstractController):
         self.session = None
         self.source = None
         self.log_level = None
+        self.mode = None
 
     def main(self):
         # Extracting parameters from command line
         args = self._extracting_parameters_from_command_line()
         self.log_level = args.log_level if args.log_level else "INFO"
         self.source = args.source
+        self.mode = args.mode
 
         # Launch logging with giving level
         self._launch_logging("parsing.log", self.log_level)
@@ -47,20 +49,21 @@ class ParsingController(AbstractController):
 
         # Create concrete parser and do parse source
         parser = ParserFactory.create_parser(self.source, self.session)
-        parser.main()
+        parser.main(mode=self.mode)
 
     @staticmethod
     def _extracting_parameters_from_command_line():
         """
         Extracting parameters from command line
         We are expecting launch from cron by command like:
-        python /home/dimau777/projects/eventer/eventer/controller/ParsingController.py --source=KudaGo --log=info
+        python /home/dimau777/projects/eventer/eventer/controller/ParsingController.py --source=KudaGo --log=info --mode=only_new
         :return:
         """
         parser = argparse.ArgumentParser(description='parser of arguments of command line for parsing launch')
         parser.add_argument('-s', '--source', action='store', dest='source',
                             help='codename source for parsing (KudaGo for example)')
         parser.add_argument('--log', action='store', dest='log_level', help='level of logging for this launch')
+        parser.add_argument('--mode', action='store', dest='mode', help='mode of parsing - only_new or full')
         args = parser.parse_args()
         return args
 
