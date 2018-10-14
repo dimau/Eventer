@@ -89,6 +89,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         logging.debug('Enter to the method, iter: %s', item)
         events = []
         event_common_parameters = {}
+        event_common_parameters['source'] = "KudaGo"
         event_common_parameters['id_kudago'] = item['id']
         event_common_parameters['publication_date'] = item['publication_date']
         event_common_parameters['title'] = item['title']
@@ -103,6 +104,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
             event_common_parameters['image'] = item['images'][0]['image']
         else:
             event_common_parameters['image'] = ""
+        event_common_parameters['join_anytime'] = False
 
         # Complicate handling of dates
         if len(item['dates']) > 1:

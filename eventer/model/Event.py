@@ -8,6 +8,8 @@ class Event(Base, FormattingDataRepresentation):
     __tablename__ = 'events'
 
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
+    # Source of the event (usually you can use part of the name of the parser: KudaGo, YandexAfishaCinema)
+    _source = sqlalchemy.Column(sqlalchemy.String(50))
     _title = sqlalchemy.Column(sqlalchemy.String(150))
     _description = sqlalchemy.Column(sqlalchemy.String(1000))
     _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
@@ -25,6 +27,8 @@ class Event(Base, FormattingDataRepresentation):
     _start_time = sqlalchemy.Column(sqlalchemy.Integer)
     # Timestamp in UTC
     _finish_time = sqlalchemy.Column(sqlalchemy.Integer)
+    # Mark that you can join this event anytime within it's period
+    _join_anytime = sqlalchemy.Column(sqlalchemy.Boolean)
     # id_kudago which has used for all series of events
     _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
     # Unique _id of the latest event in the series
@@ -37,6 +41,7 @@ class Event(Base, FormattingDataRepresentation):
     ratings = relationship("Rating", back_populates="event")
 
     def __init__(self, source_dict):
+        self._source = source_dict.get('source', '')
         self._title = source_dict.get('title', '')
         self._description = source_dict.get('description', '')
         self._id_kudago = source_dict.get('id_kudago', '')
@@ -48,6 +53,7 @@ class Event(Base, FormattingDataRepresentation):
         self._image = source_dict.get('image', '')
         self._start_time = source_dict.get('start_time', 0)
         self._finish_time = source_dict.get('finish_time', 0)
+        self._join_anytime = source_dict.get('join_anytime', False)
         self._duplicate_source_id = source_dict.get('duplicate_source_id', '')
         self._duplicate_id = source_dict.get('duplicate_id', 0)
         self._price_min = source_dict.get('price_min', None)
@@ -55,6 +61,7 @@ class Event(Base, FormattingDataRepresentation):
 
     def __repr__(self):
         return '<Event id: {} ' \
+               'source: {}, ' \
                'title: {}, ' \
                'description: {}, ' \
                'id_kudago: {}, ' \
@@ -66,10 +73,12 @@ class Event(Base, FormattingDataRepresentation):
                'image: {},' \
                'start_time: {},' \
                'finish_time: {},' \
+               'join_anytime: {}, ' \
                'duplicate_source_id: {},' \
                'duplicate_id: {},' \
                'price_min: {},' \
                'price_max: {}>'.format(self._id,
+                                       self._source,
                                        self._title,
                                        self._description,
                                        self._id_kudago,
@@ -81,6 +90,7 @@ class Event(Base, FormattingDataRepresentation):
                                        self._image,
                                        self._start_time,
                                        self._finish_time,
+                                       self._join_anytime,
                                        self._duplicate_source_id,
                                        self._duplicate_id,
                                        self._price_min,
