@@ -86,7 +86,7 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         event_common_parameters['tags_kudago'] = []
         event_common_parameters['price_kudago'] = ""
         event_common_parameters['price_min'], event_common_parameters['price_max'] = None, None
-        event_common_parameters['categories'] = self.convert_from_iterator_to_string(self._get_all_categories(item['event']['systemTags']))
+        event_common_parameters['categories'] = self._get_all_categories(item['event']['systemTags'])
         event_common_parameters['image'] = item['event']['image']['eventCover']['url']
         # Now we write to the DB not all sessions with every film (too much every day) but only days
         # when this film is on screens in cinemas
@@ -102,8 +102,8 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         for date_of_event in item['scheduleInfo']['dates']:
             event = copy.deepcopy(event_common_parameters)
             date_parts = date_of_event.split('-')  # date_of_event = "2018-10-14"
-            event['start_time'] = datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2])).timestamp()
-            event['finish_time'] = event['start_time'] + 86399  # one full day in seconds without 1 second
+            event['start_time'] = int(datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]), tzinfo=datetime.timezone.utc).timestamp())
+            event['finish_time'] = event['start_time'] + 86400 - 1  # one full day in seconds without 1 second
             events.append(event)
         if len(item['scheduleInfo']['dates']) == 0:
             event = copy.deepcopy(event_common_parameters)
@@ -115,7 +115,8 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
 
     @staticmethod
     def _get_all_categories(source_list):
-        categories = set('cinema')
+        categories = set()
+        categories.add("cinema")
         for item in source_list:
             categories.add(item['code'])
         return categories

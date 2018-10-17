@@ -11,8 +11,8 @@ resp = """
       "publication_date": 1539356260,
       "dates": [
         {
-          "start": 1539421200,
-          "end": 1543777200
+          "start": 4695469200,
+          "end": 4699825200
         }
       ],
       "title": "выставка Face 2 Face",
