@@ -61,7 +61,7 @@ class ParsingController(AbstractController):
         """
         parser = argparse.ArgumentParser(description='parser of arguments of command line for parsing launch')
         parser.add_argument('-s', '--source', action='store', dest='source',
-                            help='codename source for parsing (KudaGo for example)')
+                            help='codename source for parsing (KudaGo, YandexAfishaCinema, YandexAfishaTheater)')
         parser.add_argument('--log', action='store', dest='log_level', help='level of logging for this launch')
         parser.add_argument('--mode', action='store', dest='mode', help='mode of parsing - only_new or full')
         args = parser.parse_args()

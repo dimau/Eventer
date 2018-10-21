@@ -13,23 +13,24 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         parsing_pointer = ParsingPointer.get_parsing_pointer(source="KudaGo", session=self._session)
         return parsing_pointer
 
-    def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
+    def _check_parsing_pointer(self, event, previous_parsing_pointer_value):
         """
         Return True if this event is already in the database (publication_date of the event is less than parsing_pointer)
         Return False if this event is new (publication_date of the event is more than parsing_pointer)
-        :param event_dictionary:
+        :param event:
         :param previous_parsing_pointer_value:
         :return:
         """
-        logging.info('Enter to the method, item["publication_date"]: %s, previous_parsing_pointer_value: %s', event_dictionary['publication_date'], previous_parsing_pointer_value)
+        logging.info('Enter to the method, publication_date of the event: %s, previous_parsing_pointer_value: %s',
+                     event.publication_date, previous_parsing_pointer_value)
         if previous_parsing_pointer_value is None:
             return False
-        if int(event_dictionary['publication_date']) > int(previous_parsing_pointer_value):
+        if int(event.publication_date) > int(previous_parsing_pointer_value):
             return False
         return True
 
-    def _new_parsing_pointer(self, event_dictionary):
-        return str(event_dictionary["publication_date"])
+    def _new_parsing_pointer(self, event):
+        return str(event.publication_date)
 
     def _make_url(self, page, test_url):
         """
@@ -81,47 +82,50 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
     def _item_parser(self, item):
         """
-        Extract fields from source HTML or JSON to create Event from them and save to database
-        :param item:
-        :return: return list of events, in most cases it will contain only one item, but if event has several dates,
-        every date will have its own event in list
+        Extract fields from source HTML or JSON to create Event from them
+        :param item: part of source HTML or JSON which contains information about one event
+        :return: return list of Events, in most cases it will contain only one item, but if event has several dates,
+        every date will have its own Event in the list
         """
         logging.debug('Enter to the method, iter: %s', item)
         events = []
-        event_common_parameters = {}
-        event_common_parameters['source'] = "KudaGo"
-        event_common_parameters['id_kudago'] = item['id']
-        event_common_parameters['publication_date'] = item['publication_date']
-        event_common_parameters['title'] = item['title']
-        event_common_parameters['description'] = item['description']
-        event_common_parameters['url'] = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
-        event_common_parameters['categories_kudago'] = self.convert_from_iterator_to_string(item['categories'])
-        event_common_parameters['tags_kudago'] = item['tags']
-        event_common_parameters['price_kudago'] = item['price']
-        event_common_parameters['price_min'], event_common_parameters['price_max'] = self._get_price_from_string(item['price'], item['is_free'])
-        event_common_parameters['categories'] = self._convert_from_source_type_list_to_inner_type_set(item['categories'])
-        if len(item['images']) > 0:
-            event_common_parameters['image'] = item['images'][0]['image']
-        else:
-            event_common_parameters['image'] = ""
-        event_common_parameters['join_anytime'] = False
+
+        event = Event()
+        # If we cannot get this features (title and url) - we won't work with this event further
+        try:
+            event.title = item['title']
+            event.url = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
+            event.publication_date = item['publication_date']
+        except KeyError:
+            return []
+        event.source = "KudaGo"
+        event.id_kudago = item.get('id', None)
+        event.description = item.get('description', None)
+        event.categories_kudago = self.convert_from_iterator_to_string(item.get('categories', []))
+        event.tags_kudago = item.get('tags', None)
+        event.price_kudago = item.get('price', None)
+        event.price_min, event.price_max = self._get_price_from_string(item.get('price', ""), item.get('is_free', ""))
+        event.categories = self._convert_from_source_type_list_to_inner_type_set(item.get('categories', []))
+        if len(item.get('images', [])) > 0:
+            event.image = item['images'][0]['image']
+        event.join_anytime = False
 
         # Complicate handling of dates
-        if len(item['dates']) > 1:
-            event_common_parameters['duplicate_source_id'] = event_common_parameters['id_kudago']  # Пока положим сюда id из сайта источника - kuda go, после сохранения в базу нужно будет взять наш собственный индекс
-        else:
-            event_common_parameters['duplicate_source_id'] = ""
-        for date_of_event in item['dates']:
-            event = copy.deepcopy(event_common_parameters)
-            event['start_time'] = date_of_event['start']
-            event['finish_time'] = date_of_event['end']
+        dates = item.get('dates', [])
+        if len(dates) > 1:
+            # Firstly we will use unique identifier of the event - url
+            # After saving to database we can use our own id
+            event.duplicate_source_id = event.url
+        for date_of_event in dates:
+            event_for_date = copy.deepcopy(event)
+            event_for_date.start_time = date_of_event['start']
+            event_for_date.finish_time = date_of_event['end']
+            events.append(event_for_date)
+        if len(dates) == 0:
+            event.start_time = 0
+            event.finish_time = 0
             events.append(event)
-        if len(item['dates']) == 0:
-            event = copy.deepcopy(event_common_parameters)
-            event['start_time'] = 0
-            event['finish_time'] = 0
-            events.append(event)
-        logging.debug('final list of dictionaries: %s', events)
+        logging.debug('final list of events: %s', events)
         return events
 
     @staticmethod

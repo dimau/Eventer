@@ -13,26 +13,21 @@ class TestKudaGoParser(AbstractTestClass):
         parsing_pointer.current_pointer = "123456"
         session.add(parsing_pointer)
         session.commit()
-        event = Event({"source": "KudaGo",
-                       "title": "выставка Face 2 Face",
-                       "description": "<p>Хотите лицом к лицу встретиться с героями известных фильмов? Добро пожаловать в фантастическое пространство Face 2 Face, где реальность переплетена с вымыслом.</p>",
-                       "id_kudago": "173791",
-                       "categories_kudago": "exhibition|kids",
-                       "tags_kudago": ["интерактивные", "новые технологии", "детские", "новое на сайте", "выставки",
-                                       "детские (раздел детям)", "всей семьей", "фэнтези", "интересное",
-                                       "выходные с детьми"],
-                       "price_kudago": "от 0 до 650 рублей",
-                       "url": "https://kudago.com/msk/event/vyistavka-face-2-face",
-                       "categories": ["exhibition", "kids"],
-                       "image": "https://kudago.com/media/images/event/e1/6f/e16fa25bbf494ca18def9aa9580a5f5f.JPG",
-                       "start_time": 4695469200,
-                       "finish_time": 4699825200,
-                       "join_anytime": False,
-                       "duplicate_source_id": '',
-                       "duplicate_id": 0,
-                       "price_min": 0,
-                       "price_max": None
-                       })
+        event = Event()
+        event.source = "KudaGo"
+        event.title = "выставка Face 2 Face"
+        event.description = "<p>Хотите лицом к лицу встретиться с героями известных фильмов? Добро пожаловать в фантастическое пространство Face 2 Face, где реальность переплетена с вымыслом.</p>"
+        event.id_kudago = "173791"
+        event.categories_kudago = "exhibition|kids"
+        event.tags_kudago = ["интерактивные", "новые технологии", "детские", "новое на сайте", "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное", "выходные с детьми"]
+        event.price_kudago = "от 0 до 650 рублей"
+        event.url = "https://kudago.com/msk/event/vyistavka-face-2-face"
+        event.categories = {"exhibition", "kids"}
+        event.image = "https://kudago.com/media/images/event/e1/6f/e16fa25bbf494ca18def9aa9580a5f5f.JPG"
+        event.start_time = 4695469200
+        event.finish_time = 4699825200
+        event.join_anytime = False
+        event.price_min = 0
         parser = KudaGoParser(session)
         assert parser.main(test_url="http://127.0.0.1:5000?source=kudago&testcase=one_event") == 2
         event_from_db = session.query(Event).first()
@@ -83,10 +78,10 @@ class TestKudaGoParser(AbstractTestClass):
         events_from_db = session.query(Event).all()
         assert [] == events_from_db
 
-    def test_make_url_for_first_page(self, session, clear_data):
+    def test_make_url_for_second_page(self, session, clear_data):
         parser = KudaGoParser(session)
-        assert parser._make_url(page=1,
-                                test_url=None) == "https://kudago.com/public-api/v1.4/events/?lang=ru&page_size=100&order_by=-publication_date&text_format=html&location=msk&is_free=0&fields=id,publication_date,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&page=1"
+        assert parser._make_url(page=2,
+                                test_url=None) == "https://kudago.com/public-api/v1.4/events/?lang=ru&page_size=100&order_by=-publication_date&text_format=html&location=msk&is_free=0&fields=id,publication_date,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants&page=2"
 
     def test_make_url_with_test_url(self, session, clear_data):
         parser = KudaGoParser(session)

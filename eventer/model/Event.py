@@ -7,10 +7,13 @@ from FormattingDataRepresentation import FormattingDataRepresentation
 class Event(Base, FormattingDataRepresentation):
     __tablename__ = 'events'
 
+    # Autoincrement id for every saved to database event
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
     # Source of the event (usually you can use part of the name of the parser: KudaGo, YandexAfishaCinema)
     _source = sqlalchemy.Column(sqlalchemy.String(50))
+    # Title of the event
     _title = sqlalchemy.Column(sqlalchemy.String(150))
+    # Description of the event
     _description = sqlalchemy.Column(sqlalchemy.String(1000))
     _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
     _categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
@@ -30,7 +33,7 @@ class Event(Base, FormattingDataRepresentation):
     # Mark that you can join this event anytime within it's period
     _join_anytime = sqlalchemy.Column(sqlalchemy.Boolean)
     # id_kudago which has used for all series of events
-    _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(50))
+    _duplicate_source_id = sqlalchemy.Column(sqlalchemy.String(500))
     # Unique _id of the latest event in the series
     _duplicate_id = sqlalchemy.Column(sqlalchemy.Integer)
     # In integer rubles
@@ -40,24 +43,8 @@ class Event(Base, FormattingDataRepresentation):
 
     ratings = relationship("Rating", back_populates="event")
 
-    def __init__(self, source_dict):
-        self._source = source_dict.get('source', '')
-        self._title = source_dict.get('title', '')
-        self._description = source_dict.get('description', '')
-        self._id_kudago = source_dict.get('id_kudago', '')
-        self._categories_kudago = source_dict.get('categories_kudago', '')
-        self._tags_kudago = self.convert_from_iterator_to_string(source_dict.get('tags_kudago', ''))
-        self._price_kudago = source_dict.get('price_kudago', '')
-        self._url = source_dict.get('url', '')
-        self._categories = self.convert_from_iterator_to_string(source_dict.get('categories', set()))
-        self._image = source_dict.get('image', '')
-        self._start_time = source_dict.get('start_time', 0)
-        self._finish_time = source_dict.get('finish_time', 0)
-        self._join_anytime = source_dict.get('join_anytime', False)
-        self._duplicate_source_id = source_dict.get('duplicate_source_id', '')
-        self._duplicate_id = source_dict.get('duplicate_id', 0)
-        self._price_min = source_dict.get('price_min', None)
-        self._price_max = source_dict.get('price_max', None)
+    def __init__(self):
+        pass
 
     def __repr__(self):
         return '<Event id: {} ' \
@@ -77,57 +64,148 @@ class Event(Base, FormattingDataRepresentation):
                'duplicate_source_id: {},' \
                'duplicate_id: {},' \
                'price_min: {},' \
-               'price_max: {}>'.format(self._id,
-                                       self._source,
-                                       self._title,
-                                       self._description,
-                                       self._id_kudago,
-                                       self._categories_kudago,
-                                       self._tags_kudago,
-                                       self._price_kudago,
-                                       self._url,
-                                       self._categories,
-                                       self._image,
-                                       self._start_time,
-                                       self._finish_time,
-                                       self._join_anytime,
-                                       self._duplicate_source_id,
-                                       self._duplicate_id,
-                                       self._price_min,
-                                       self._price_max)
+               'price_max: {}>'.format(self.event_id,
+                                       self.source,
+                                       self.title,
+                                       self.description,
+                                       self.id_kudago,
+                                       self.categories_kudago,
+                                       self.tags_kudago,
+                                       self.price_kudago,
+                                       self.url,
+                                       self.categories,
+                                       self.image,
+                                       self.start_time,
+                                       self.finish_time,
+                                       self.join_anytime,
+                                       self.duplicate_source_id,
+                                       self.duplicate_id,
+                                       self.price_min,
+                                       self.price_max)
 
     @property
     def event_id(self):
         return self._id
 
     @property
+    def source(self):
+        return self._source
+
+    @source.setter
+    def source(self, value):
+        self._source = str(value)
+
+    @property
     def title(self):
         return self._title
+
+    @title.setter
+    def title(self, value):
+        self._title = str(value)
+
+    @property
+    def description(self):
+        return self._description
+
+    @description.setter
+    def description(self, value):
+        self._description = str(value)
 
     @property
     def id_kudago(self):
         return self._id_kudago
 
+    @id_kudago.setter
+    def id_kudago(self, value):
+        self._id_kudago = str(value)
+
     @property
-    def categories(self):
-        # TODO: refactor automatically convert from string to set and delete function convert_from_set_to_string
-        return self._categories
+    def categories_kudago(self):
+        return self._categories_kudago
+
+    @categories_kudago.setter
+    def categories_kudago(self, value):
+        self._categories_kudago = str(value)
+
+    @property
+    def tags_kudago(self):
+        return self._tags_kudago
+
+    @tags_kudago.setter
+    def tags_kudago(self, value):
+        self._tags_kudago = str(value)
+
+    @property
+    def price_kudago(self):
+        return self._price_kudago
+
+    @price_kudago.setter
+    def price_kudago(self, value):
+        self._price_kudago = str(value)
 
     @property
     def url(self):
         return self._url
 
+    @url.setter
+    def url(self, value):
+        self._url = str(value)
+
+    @property
+    def categories(self):
+        """
+        :return: string like "exhibition|kids"
+        """
+        # TODO: refactor automatically convert from string to set and delete function convert_from_set_to_string
+        return self._categories
+
+    @categories.setter
+    def categories(self, value):
+        """
+        :param value: iterator like {"exhibition", "kids"}
+        :return:
+        """
+        self._categories = self.convert_from_iterator_to_string(value)
+
     @property
     def image(self):
         return self._image
+
+    @image.setter
+    def image(self, value):
+        self._image = str(value)
 
     @property
     def start_time(self):
         return self._start_time
 
+    @start_time.setter
+    def start_time(self, value):
+        self._start_time = int(value)
+
+    @property
+    def finish_time(self):
+        return self._finish_time
+
+    @finish_time.setter
+    def finish_time(self, value):
+        self._finish_time = int(value)
+
+    @property
+    def join_anytime(self):
+        return self._join_anytime
+
+    @join_anytime.setter
+    def join_anytime(self, value):
+        self._join_anytime = bool(value)
+
     @property
     def duplicate_source_id(self):
         return self._duplicate_source_id
+
+    @duplicate_source_id.setter
+    def duplicate_source_id(self, value):
+        self._duplicate_source_id = str(value)
 
     @property
     def duplicate_id(self):
@@ -141,9 +219,23 @@ class Event(Base, FormattingDataRepresentation):
     def price_min(self):
         return self._price_min
 
+    @price_min.setter
+    def price_min(self, value):
+        if value is None:
+            self._price_min = None
+        else:
+            self._price_min = int(value)
+
     @property
     def price_max(self):
         return self._price_max
+
+    @price_max.setter
+    def price_max(self, value):
+        if value is None:
+            self._price_max = None
+        else:
+            self._price_max = int(value)
 
 
 """

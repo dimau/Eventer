@@ -7,10 +7,10 @@ import copy
 import datetime
 
 
-class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
+class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
 
     def _create_parsing_pointer(self):
-        parsing_pointer = ParsingPointer.get_parsing_pointer(source="YandexAfishaCinema", session=self._session)
+        parsing_pointer = ParsingPointer.get_parsing_pointer(source="YandexAfishaTheater", session=self._session)
         return parsing_pointer
 
     def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
@@ -40,10 +40,10 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
             return test_url + "&page=" + str(page)
 
         url_template = 'https://afisha.yandex.ru/api/events/selection/all-events-cinema?' \
-                       'limit=%(limit)s&' \
-                       'offset=%(offset)s&' \
-                       'hasMixed=%(hasMixed)s&' \
-                       'city=%(city)s'
+                       'limit=20&' \
+                       'offset=0&' \
+                       'hasMixed=0&' \
+                       'city=moscow'
 
         url = url_template % {
             'limit': '20',
@@ -78,33 +78,28 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         events = []
 
         event = Event()
-        # If we cannot get this features (title and url) - we won't work with this event further
-        try:
-            event.title = item['event']['title']
-            event.url = 'https://afisha.yandex.ru' + item['event']['url']
-        except KeyError:
-            return []
         event.source = "YandexAfishaCinema"
-        event.description = item.get('event', {}).get('argument', None)
-        event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
-        event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
+        event.title = item['event']['title']
+        event.description = item['event']['argument']
+        event.url = 'https://afisha.yandex.ru' + item['event']['url']
+        event.categories = self._get_all_categories(item['event']['systemTags'])
+        event.image = item['event']['image']['eventCover']['url']
         # Now we write to the DB not all sessions with every film (too much every day) but only days
         # when this film is on screens in cinemas
         event.join_anytime = True
 
         # Complicate handling of dates
-        dates = item.get('scheduleInfo', {}).get('dates', [])
-        if len(dates) > 1:
+        if len(item['scheduleInfo']['dates']) > 1:
             # Firstly we will use unique identifier of the event - url
             # After saving to database we can use our own id
             event.duplicate_source_id = event.url
-        for date_of_event in dates:
+        for date_of_event in item['scheduleInfo']['dates']:
             event_for_date = copy.deepcopy(event)
             date_parts = date_of_event.split('-')  # date_of_event = "2018-10-14"
             event_for_date.start_time = int(datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]), tzinfo=datetime.timezone.utc).timestamp())
             event_for_date.finish_time = event_for_date.start_time + 86400 - 1  # one full day in seconds without 1 second
             events.append(event_for_date)
-        if len(dates) == 0:
+        if len(item['scheduleInfo']['dates']) == 0:
             event.start_time = 0
             event.finish_time = 0
             events.append(event)

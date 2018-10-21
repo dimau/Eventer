@@ -27,7 +27,7 @@ class AbstractParser:
         self._session.add(parsing_pointer)
         previous_parsing_pointer_value = parsing_pointer.current_pointer
 
-        # Look over all pages while we don't reach a parsing pointer
+        # Look over all pages (in the case of 'only_new' mode we do it only while we don't reach a parsing pointer)
         page_number = 1
         already_saved_event_in_collection = False
         while True:
@@ -48,13 +48,15 @@ class AbstractParser:
                 break
             logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
-            # Look over all events from list and create normalize dictionary for every event
+            # Look over all events from the list and create Event object for every event
             events_collection_normalized = []
             for item in events_collection_source:
 
-                # Parsing of one event in the list into list of related dictionaries with event parameters
+                # Parsing of one event in the list into list of related Event objects
                 events = self._item_parser(item)
-                logging.debug('Event dictionary after item parsing: %s', events)
+                logging.debug('Events after item parsing: %s', events)
+                if len(events) == 0:
+                    continue
 
                 # Check is this event in database already for every event to avoid duplicates in database
                 if self._check_is_this_event_in_db_already(mode, previous_parsing_pointer_value, events[0]):
@@ -72,7 +74,7 @@ class AbstractParser:
                 logging.info('Remembered new parsing pointer: %s', parsing_pointer.current_pointer)
 
             # Remove events which have finished in past
-            logging.info('%s events in our list of normalized dictionaries', len(events_collection_normalized))
+            logging.info('%s events in our list of normalized collection of events', len(events_collection_normalized))
             events_collection_normalized = self._remove_already_finished_events(events_collection_normalized)
             logging.info('In summary for page number %s. New events: %s, is existing event on the page: %s',
                          page_number, len(events_collection_normalized), already_saved_event_in_collection)
@@ -133,34 +135,34 @@ class AbstractParser:
     def _item_parser(self, item):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _check_is_this_event_in_db_already(self, mode, previous_parsing_pointer_value, event_dictionary):
+    def _check_is_this_event_in_db_already(self, mode, previous_parsing_pointer_value, event):
         """
         Return True if this event is already in the database
         Return False if this event is new
         :param mode:
         :param previous_parsing_pointer_value:
-        :param event_dictionary:
+        :param event:
         :return:
         """
-        if mode == "only_new" and self._check_parsing_pointer(event_dictionary, previous_parsing_pointer_value):
+        if mode == "only_new" and self._check_parsing_pointer(event, previous_parsing_pointer_value):
             return True
         if mode == "full":
-            same_event_in_db = self._session.query(Event).filter(Event._url == event_dictionary['url']).first()
+            same_event_in_db = self._session.query(Event).filter(Event._url == event.url).first()
             if same_event_in_db:
                 return True
             return False
 
-    def _new_parsing_pointer(self, event_dictionary):
+    def _new_parsing_pointer(self, event):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     @staticmethod
     def _remove_already_finished_events(events):
         result = []
         # TODO: refactoring 3 - will have be in config file
-        current_timestamp = (datetime.datetime.now() + datetime.timedelta(
-            hours=3)).timestamp()  # server time is least for 3 hours than real moscow time
+        # Server time is least for 3 hours than real moscow time
+        current_timestamp = (datetime.datetime.now() + datetime.timedelta(hours=3)).timestamp()
         for event in events:
-            if event['finish_time'] > current_timestamp:
+            if event.finish_time > current_timestamp:
                 result.append(event)
         return result
 
@@ -173,24 +175,23 @@ class AbstractParser:
         logging.debug('Enter to the method')
         logging.info('We will write to database %s events', len(events_collection_normalized))
 
-        # Запись всех новых событий в базу данных
-        for item in events_collection_normalized:
-            event = Event(item)
+        # Save all new events to the database
+        for event in events_collection_normalized:
             self._session.add(event)
         self._session.commit()
         logging.info('Write to database was successful')
 
         # Assignment real id of last event for duplicates of this event with other dates
         handled_duplicate_source_id = []
-        for item in events_collection_normalized:
-            if item['duplicate_source_id'] == "" or item['duplicate_source_id'] in handled_duplicate_source_id:
+        for event in events_collection_normalized:
+            if (not event.duplicate_source_id) or (event.duplicate_source_id in handled_duplicate_source_id):
                 continue
-            all_duplicates = self._session.query(Event).filter(Event._duplicate_source_id == item['duplicate_source_id']).all()
+            all_duplicates = self._session.query(Event).filter(Event._duplicate_source_id == event.duplicate_source_id).all()
             latest_event_id = sorted(all_duplicates, key=lambda x: x.start_time, reverse=True)[0].event_id
-            for event in all_duplicates:
-                event.duplicate_id = latest_event_id
-                self._session.add(event)
-            handled_duplicate_source_id.append(item['duplicate_source_id'])
+            for duplicate_event in all_duplicates:
+                duplicate_event.duplicate_id = latest_event_id
+                self._session.add(duplicate_event)
+            handled_duplicate_source_id.append(event.duplicate_source_id)
         self._session.commit()
         logging.info('Number of handled duplicate source id: %s', len(handled_duplicate_source_id))
         return

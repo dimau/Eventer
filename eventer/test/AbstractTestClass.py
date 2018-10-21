@@ -25,20 +25,20 @@ class AbstractTestClass:
 
     @staticmethod
     def check_equivalence_of_two_events(event1, event2):
-        assert event1._source == event2._source
-        assert event1._title == event2._title
-        assert event1._description == event2._description
-        assert event1._id_kudago == event2._id_kudago
-        assert event1._categories_kudago == event2._categories_kudago
-        assert event1._tags_kudago == event2._tags_kudago
-        assert event1._price_kudago == event2._price_kudago
-        assert event1._url == event2._url
-        assert sorted(event1._categories.split("|")) == sorted(event2._categories.split("|"))
-        assert event1._image == event2._image
-        assert event1._start_time == event2._start_time
-        assert event1._finish_time == event2._finish_time
-        assert event1._join_anytime == event2._join_anytime
-        assert event1._duplicate_source_id == event2._duplicate_source_id
-        assert event1._duplicate_id == event2._duplicate_id
-        assert event1._price_min == event2._price_min
-        assert event1._price_max == event2._price_max
+        assert event1.source == event2.source
+        assert event1.title == event2.title
+        assert event1.description == event2.description
+        assert event1.id_kudago == event2.id_kudago
+        assert event1.categories_kudago == event2.categories_kudago
+        assert event1.tags_kudago == event2.tags_kudago
+        assert event1.price_kudago == event2.price_kudago
+        assert event1.url == event2.url
+        assert sorted(event1.categories.split("|")) == sorted(event2.categories.split("|"))
+        assert event1.image == event2.image
+        assert event1.start_time == event2.start_time
+        assert event1.finish_time == event2.finish_time
+        assert event1.join_anytime == event2.join_anytime
+        assert event1.duplicate_source_id == event2.duplicate_source_id
+        assert event1.duplicate_id == event2.duplicate_id
+        assert event1.price_min == event2.price_min
+        assert event1.price_max == event2.price_max

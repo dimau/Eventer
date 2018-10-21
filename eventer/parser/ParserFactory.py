@@ -13,6 +13,14 @@ class ParserFactory:
             from KudaGoParser import KudaGoParser
             parser = KudaGoParser(session)
             return parser
+        if source == "YandexAfishaCinema":
+            from YandexAfishaCinemaParser import YandexAfishaCinemaParser
+            parser = YandexAfishaCinemaParser(session)
+            return parser
+        if source == "YandexAfishaTheater":
+            from YandexAfishaTheaterParser import YandexAfishaTheaterParser
+            parser = YandexAfishaTheaterParser(session)
+            return parser
 
         logging.error('Wrong source parameter!')
         raise ValueError("source parameter is wrong: " + str(source))
