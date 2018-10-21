@@ -99,10 +99,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         except KeyError:
             return []
         event.source = "KudaGo"
-        event.id_kudago = item.get('id', None)
         event.description = item.get('description', None)
-        event.categories_kudago = self.convert_from_iterator_to_string(item.get('categories', []))
-        event.tags_kudago = item.get('tags', None)
         event.price_kudago = item.get('price', None)
         event.price_min, event.price_max = self._get_price_from_string(item.get('price', ""), item.get('is_free', ""))
         event.categories = item.get('categories', []) + item.get('tags', [])

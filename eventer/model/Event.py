@@ -15,9 +15,6 @@ class Event(Base, FormattingDataRepresentation):
     _title = sqlalchemy.Column(sqlalchemy.String(150))
     # Description of the event
     _description = sqlalchemy.Column(sqlalchemy.String(1000))
-    _id_kudago = sqlalchemy.Column(sqlalchemy.String(50))
-    _categories_kudago = sqlalchemy.Column(sqlalchemy.String(1000))  # временно сохраняю в базу для отладки
-    _tags_kudago = sqlalchemy.Column(sqlalchemy.String(500))  # временно сохраняю в базу для отладки
     # String with price from KudaGo (can be complicated for parsing)
     _price_kudago = sqlalchemy.Column(sqlalchemy.String(50))  # временно сохраняю в базу для отладки
     # Source url of description of the event
@@ -51,9 +48,6 @@ class Event(Base, FormattingDataRepresentation):
                'source: {}, ' \
                'title: {}, ' \
                'description: {}, ' \
-               'id_kudago: {}, ' \
-               'categories_kudago: {}, ' \
-               'tags_kudago: {}, ' \
                'price_kudago: {}, ' \
                'url: {}, ' \
                'categories: {},' \
@@ -68,9 +62,6 @@ class Event(Base, FormattingDataRepresentation):
                                        self.source,
                                        self.title,
                                        self.description,
-                                       self.id_kudago,
-                                       self.categories_kudago,
-                                       self.tags_kudago,
                                        self.price_kudago,
                                        self.url,
                                        self.categories,
@@ -110,30 +101,6 @@ class Event(Base, FormattingDataRepresentation):
     @description.setter
     def description(self, value):
         self._description = str(value)
-
-    @property
-    def id_kudago(self):
-        return self._id_kudago
-
-    @id_kudago.setter
-    def id_kudago(self, value):
-        self._id_kudago = str(value)
-
-    @property
-    def categories_kudago(self):
-        return self._categories_kudago
-
-    @categories_kudago.setter
-    def categories_kudago(self, value):
-        self._categories_kudago = str(value)
-
-    @property
-    def tags_kudago(self):
-        return self._tags_kudago
-
-    @tags_kudago.setter
-    def tags_kudago(self, value):
-        self._tags_kudago = str(value)
 
     @property
     def price_kudago(self):

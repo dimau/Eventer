@@ -17,9 +17,6 @@ class TestKudaGoParser(AbstractTestClass):
         event.source = "KudaGo"
         event.title = "выставка Face 2 Face"
         event.description = "<p>Хотите лицом к лицу встретиться с героями известных фильмов? Добро пожаловать в фантастическое пространство Face 2 Face, где реальность переплетена с вымыслом.</p>"
-        event.id_kudago = "173791"
-        event.categories_kudago = "exhibition|kids"
-        event.tags_kudago = ["интерактивные", "новые технологии", "детские", "новое на сайте", "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное", "выходные с детьми"]
         event.price_kudago = "от 0 до 650 рублей"
         event.url = "https://kudago.com/msk/event/vyistavka-face-2-face"
         event.categories = {"exhibition", "kids", "интерактивные", "новые технологии", "детские", "новое на сайте", "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное", "выходные с детьми"}

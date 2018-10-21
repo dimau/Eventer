@@ -28,9 +28,6 @@ class AbstractTestClass:
         assert event1.source == event2.source
         assert event1.title == event2.title
         assert event1.description == event2.description
-        assert event1.id_kudago == event2.id_kudago
-        assert event1.categories_kudago == event2.categories_kudago
-        assert event1.tags_kudago == event2.tags_kudago
         assert event1.price_kudago == event2.price_kudago
         assert event1.url == event2.url
         assert sorted(event1.categories.split("|")) == sorted(event2.categories.split("|"))
