@@ -105,7 +105,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         event.tags_kudago = item.get('tags', None)
         event.price_kudago = item.get('price', None)
         event.price_min, event.price_max = self._get_price_from_string(item.get('price', ""), item.get('is_free', ""))
-        event.categories = self._convert_from_source_type_list_to_inner_type_set(item.get('categories', []))
+        event.categories = item.get('categories', []) + item.get('tags', [])
         if len(item.get('images', [])) > 0:
             event.image = item['images'][0]['image']
         event.join_anytime = False
@@ -157,69 +157,3 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
         # Return result
         return price_min, price_max
-
-    def _convert_from_source_type_list_to_inner_type_set(self, source_type_list):
-        """
-        Take a list of categories from source and return set of appropriate inner categories
-        :param source_type_list: list of string (list of categories) from KudaGo
-        :return: set of inner categories
-        """
-        inner_type_set = set()
-        for item in source_type_list:
-            type_set_for_item = self._type_of_event_converter(item)
-            inner_type_set = inner_type_set.union(type_set_for_item)
-        return inner_type_set
-
-    @staticmethod
-    def _type_of_event_converter(source_type_of_event):
-        """
-        Take one string = one category and return appropriate set of inner types
-        :param source_type_of_event: one string = one category
-        :return: appropriate set of inner types
-        """
-        type_of_event_dictionary = {
-            "concert": ["concert"],
-            "theater": ["theater"],
-            "education": ["education"],
-            "party": ["party"],
-            "sport": ["sport"],
-            "exhibition": ["exhibition"],
-            "tour": ["tour"],
-            "festival": ["festival"],
-            "cinema": ["cinema"],
-            "fashion": ["fashion"],
-            "show": ["show"],
-            "holiday": ["festival"],
-            "social-activity": ["social-activity"],
-            "yarmarki-razvlecheniya-yarmarki": ["festival"],
-            "games": ["games"],
-            "night": ["night"],
-            "meeting": ["meeting"],
-            "speed-dating": ["speed-dating"],
-            "flashmob": ["flashmob"],
-            "masquerade": ["masquerade"],
-            "romance": ["romance"],
-            "dance-trainings": ["dance-trainings"],
-            "evening": ["evening"],
-            "discount": ["discount"],
-            "stock": ["stock"],
-            "sale": ["sale"],
-            "shopping": ["shopping"],
-            "quest": ["quest"],
-            "ball": ["festival"],
-            "yoga": ["yoga"],
-            "presentation": ["presentation"],
-            "magic": ["magic"],
-            "kvn": ["kvn"],
-            "comedy-club": ["comedy-club"],
-            "stand-up": ["stand-up"],
-            "kids": ["kids"],
-            "circus": ["circus"],
-            "open": ["open"],
-            "other": ["other"],
-            "photo": ["photo"],
-            "global": ["global"],
-            "permanent-exhibitions": ["permanent-exhibitions"],
-            "business-events": ["business-events"]
-        }
-        return set(type_of_event_dictionary.get(source_type_of_event, []))

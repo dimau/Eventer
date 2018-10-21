@@ -39,11 +39,11 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         if test_url:
             return test_url + "&page=" + str(page)
 
-        url_template = 'https://afisha.yandex.ru/api/events/selection/all-events-cinema?' \
-                       'limit=20&' \
-                       'offset=0&' \
-                       'hasMixed=0&' \
-                       'city=moscow'
+        url_template = 'https://afisha.yandex.ru/api/events/selection/all-events-theatre?' \
+                       'limit=%(limit)s&' \
+                       'offset=%(offset)s&' \
+                       'hasMixed=%(hasMixed)s&' \
+                       'city=%(city)s'
 
         url = url_template % {
             'limit': '20',
@@ -78,28 +78,34 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         events = []
 
         event = Event()
-        event.source = "YandexAfishaCinema"
-        event.title = item['event']['title']
-        event.description = item['event']['argument']
-        event.url = 'https://afisha.yandex.ru' + item['event']['url']
-        event.categories = self._get_all_categories(item['event']['systemTags'])
-        event.image = item['event']['image']['eventCover']['url']
+        # If we cannot get this features (title and url) - we won't work with this event further
+        try:
+            event.title = item['event']['title']
+            event.url = 'https://afisha.yandex.ru' + item['event']['url']
+        except KeyError:
+            return []
+        event.source = "YandexAfishaTheater"
+        event.description = item.get('event', {}).get('argument', None)
+        event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
+        event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
         # Now we write to the DB not all sessions with every film (too much every day) but only days
         # when this film is on screens in cinemas
-        event.join_anytime = True
+        event.join_anytime = False
+        event.price_min, event.price_max = self._get_price_from_json(item)
 
         # Complicate handling of dates
-        if len(item['scheduleInfo']['dates']) > 1:
+        dates = item.get('scheduleInfo', {}).get('dates', [])
+        if len(dates) > 1:
             # Firstly we will use unique identifier of the event - url
             # After saving to database we can use our own id
             event.duplicate_source_id = event.url
-        for date_of_event in item['scheduleInfo']['dates']:
+        for date_of_event in dates:
             event_for_date = copy.deepcopy(event)
             date_parts = date_of_event.split('-')  # date_of_event = "2018-10-14"
             event_for_date.start_time = int(datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]), tzinfo=datetime.timezone.utc).timestamp())
             event_for_date.finish_time = event_for_date.start_time + 86400 - 1  # one full day in seconds without 1 second
             events.append(event_for_date)
-        if len(item['scheduleInfo']['dates']) == 0:
+        if len(dates) == 0:
             event.start_time = 0
             event.finish_time = 0
             events.append(event)
@@ -113,3 +119,24 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         for item in source_list:
             categories.add(item['code'])
         return categories
+
+    @staticmethod
+    def _get_price_from_json(item):
+        # Initialization
+        price_min = None
+        price_max = None
+
+        try:
+            price_min = item['event']['tickets'][0]['price']['min']
+            price_min = int(int(price_min) / 100)
+        except (KeyError, IndexError):
+            price_min = None
+
+        try:
+            price_max = item['event']['tickets'][0]['price']['max']
+            price_max = int(int(price_max) / 100)
+        except (KeyError, IndexError):
+            price_max = None
+
+        # Return result
+        return price_min, price_max

@@ -22,7 +22,7 @@ class TestKudaGoParser(AbstractTestClass):
         event.tags_kudago = ["интерактивные", "новые технологии", "детские", "новое на сайте", "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное", "выходные с детьми"]
         event.price_kudago = "от 0 до 650 рублей"
         event.url = "https://kudago.com/msk/event/vyistavka-face-2-face"
-        event.categories = {"exhibition", "kids"}
+        event.categories = {"exhibition", "kids", "интерактивные", "новые технологии", "детские", "новое на сайте", "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное", "выходные с детьми"}
         event.image = "https://kudago.com/media/images/event/e1/6f/e16fa25bbf494ca18def9aa9580a5f5f.JPG"
         event.start_time = 4695469200
         event.finish_time = 4699825200
