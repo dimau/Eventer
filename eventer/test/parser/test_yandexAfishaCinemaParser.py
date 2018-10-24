@@ -19,6 +19,7 @@ class TestYandexAfishaCinemaParser(AbstractTestClass):
         event.start_time = 4695148800
         event.finish_time = 4695235199
         event.join_anytime = True
+        event.status = "active"
         parser = YandexAfishaCinemaParser(session)
         assert parser.main(mode="full", test_url="http://127.0.0.1:5000?source=yandexAfishaCinema&testcase=one_event_in_full_mode") == 2
         event_from_db = session.query(Event).first()

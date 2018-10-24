@@ -106,6 +106,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         if len(item.get('images', [])) > 0:
             event.image = item['images'][0]['image']
         event.join_anytime = False
+        event.status = "active"
 
         # Complicate handling of dates
         dates = item.get('dates', [])
@@ -154,3 +155,10 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
 
         # Return result
         return price_min, price_max
+
+    def _inactivate_not_represented_on_source_events(self, all_events_ids):
+        outdated_events = self._session.query(Event).filter(Event._source == "KudaGo").filter(~Event._id.in_(all_events_ids))
+        for event in outdated_events:
+            event.status = "hidden"
+            self._session.add(event)
+        self._session.commit()

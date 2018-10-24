@@ -30,7 +30,7 @@ class AbstractTestClass:
         assert event1.description == event2.description
         assert event1.price_kudago == event2.price_kudago
         assert event1.url == event2.url
-        assert sorted(event1.categories.split("|")) == sorted(event2.categories.split("|"))
+        assert event1.categories == event2.categories
         assert event1.image == event2.image
         assert event1.start_time == event2.start_time
         assert event1.finish_time == event2.finish_time
@@ -39,3 +39,4 @@ class AbstractTestClass:
         assert event1.duplicate_id == event2.duplicate_id
         assert event1.price_min == event2.price_min
         assert event1.price_max == event2.price_max
+        assert event1.status == event2.status

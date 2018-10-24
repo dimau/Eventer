@@ -15,8 +15,9 @@ class AbstractParser:
         This method downloads list of events from source (in cycle with parameter page number)
         and save new data to database while we face parsing pointer (it means, that we have reached last successfully
         handled event from this source)
-        :param mode: 'only_new' = mode of working parser, when parser get only new events until the parsing pointer value
-                     'full' = mode of working parser, when parser get all events
+        :param mode: 'only_new' = parser get only new events from the top of the list until it reach the parsing pointer value
+                     'full' = parser get all events and save to the database only new of them without changing already existing in our database
+                     'full_with_updating' = parser get all events, updating already saved events and deleting not existing on the source events
         :param test_url: you can transmit test url for testing purpose, in this case _make_url() will use this url (usually localhost url)
         :return:
         """
@@ -30,6 +31,9 @@ class AbstractParser:
         # Look over all pages (in the case of 'only_new' mode we do it only while we don't reach a parsing pointer)
         page_number = 1
         already_saved_event_in_collection = False
+        # All_events_ids will contains ids (urls) for all Events after whole parsing cycle
+        # It can be used for inactivation or deleting removed from source events from our database too
+        all_events_ids = []
         while True:
             logging.info('New page number = %s', page_number)
 
@@ -49,6 +53,7 @@ class AbstractParser:
             logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
             # Look over all events from the list and create Event object for every event
+            # Events_collection_normalized will contains all NEW Events after whole parsing cycle
             events_collection_normalized = []
             for item in events_collection_source:
 
@@ -57,14 +62,16 @@ class AbstractParser:
                 logging.debug('Events after item parsing: %s', events)
                 if len(events) == 0:
                     continue
+                # We are gathering the list of all actual events for now from the source
+                if mode == "full_with_updating":
+                    all_events_ids.append(events[0].url)
 
-                # Check is this event in database already for every event to avoid duplicates in database
-                if self._check_is_this_event_in_db_already(mode, previous_parsing_pointer_value, events[0]):
-                    logging.info('We have already handled this event')
-                    already_saved_event_in_collection = True
-                    continue
-                logging.info('It is a new event')
-                events_collection_normalized += events
+                # We are trying to find the same event in the database. For every event.
+                # For 'only_new' and 'full' mode it helps to avoid duplicates in database
+                # For 'full_with_updating' mode it helps change existing in the database events
+                # Result depends on mode of parsing, but in any case we get list of events for adding to the session with database
+                events_for_db, already_saved_event_in_collection = self._checking_events_in_database(mode, previous_parsing_pointer_value, events)
+                events_collection_normalized += events_for_db
 
             # Save new parsing pointer - only in the beginning of this iteration of parsing
             # We will save a new parsing pointer only if we have at least one new event,
@@ -96,6 +103,10 @@ class AbstractParser:
 
             # Add sleep to don't ddos attack source server
             time.sleep(1)
+
+        # Inactivate events in the database which are not represented in the source for now
+        if mode == "full_with_updating":
+            self._inactivate_not_represented_on_source_events(all_events_ids)
 
         # For test purpose - we can check how many pages we have handled
         return page_number
@@ -135,22 +146,87 @@ class AbstractParser:
     def _item_parser(self, item):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _check_is_this_event_in_db_already(self, mode, previous_parsing_pointer_value, event):
+    def _checking_events_in_database(self, mode, previous_parsing_pointer_value, events):
+
+        # Initialisation of vars
+        events_for_db = events
+        already_saved_event_in_collection = False
+
+        if mode == "only_new":
+            if self._check_parsing_pointer(events[0], previous_parsing_pointer_value):
+                logging.info('We have already handled this event')
+                already_saved_event_in_collection = True
+                events_for_db = []
+            else:
+                logging.info('It is a new event')
+
+        if mode == "full":
+            if self._check_is_this_event_in_db_already(events[0]):
+                logging.info('We have already handled this event')
+                already_saved_event_in_collection = True
+                events_for_db = []
+            else:
+                logging.info('It is a new event')
+
+        if mode == "full_with_updating":
+            same_events_in_db = self._get_same_events_from_db(events[0])
+            logging.info('This event is already in our database: %s', len(same_events_in_db))
+            events_for_db = self._update_events_from_db(same_events_in_db, events)
+
+        return events_for_db, already_saved_event_in_collection
+
+    def _check_is_this_event_in_db_already(self, event):
         """
         Return True if this event is already in the database
         Return False if this event is new
-        :param mode:
-        :param previous_parsing_pointer_value:
         :param event:
         :return:
         """
-        if mode == "only_new" and self._check_parsing_pointer(event, previous_parsing_pointer_value):
+        same_event_in_db = self._session.query(Event).filter(Event._url == event.url).first()
+        if same_event_in_db:
             return True
-        if mode == "full":
-            same_event_in_db = self._session.query(Event).filter(Event._url == event.url).first()
-            if same_event_in_db:
-                return True
-            return False
+        return False
+
+    def _get_same_events_from_db(self, event):
+        """
+        Return list of Events from the database with the same url which has event from parameter
+        :param event:
+        :return:
+        """
+        same_events_in_db = self._session.query(Event).filter(Event._url == event.url).all()
+        return same_events_in_db
+
+    @staticmethod
+    def _update_events_from_db(same_events_in_db, events):
+        result_list_of_events = []
+
+        # Preparing list of Event ids which are represented in the source for now
+        ids_actual_events = []
+
+        # Gathering updated events from the database and new events from the source
+        for event in events:
+            i_find_event = False
+            for event_from_db in same_events_in_db:
+                if event.start_time == event_from_db.start_time and event.finish_time == event_from_db.finish_time:
+                    event_from_db.update_event(event)
+                    result_list_of_events.append(event_from_db)
+                    i_find_event = True
+                    ids_actual_events.append(event_from_db.event_id)
+                    break
+            if not i_find_event:
+                result_list_of_events.append(event)
+
+        # Inactivating of not represented in source events
+        for event_from_db in same_events_in_db:
+            if event_from_db.event_id in ids_actual_events:
+                continue
+            event_from_db.status = "hidden"
+            result_list_of_events.append(event_from_db)
+
+        return result_list_of_events
+
+    def _inactivate_not_represented_on_source_events(self, all_events_ids):
+        raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     def _new_parsing_pointer(self, event):
         raise NotImplementedError("This method doesn't implemented in the concrete class")

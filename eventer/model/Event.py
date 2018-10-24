@@ -9,7 +9,7 @@ class Event(Base, FormattingDataRepresentation):
 
     # Autoincrement id for every saved to database event
     _id = sqlalchemy.Column(sqlalchemy.Integer, primary_key=True)
-    # Source of the event (usually you can use part of the name of the parser: KudaGo, YandexAfishaCinema)
+    # Source of the event (usually you can use part of the name of the parser: KudaGo, YandexAfishaCinema, YandexAfishaTheater)
     _source = sqlalchemy.Column(sqlalchemy.String(50))
     # Title of the event
     _title = sqlalchemy.Column(sqlalchemy.String(150))
@@ -37,6 +37,8 @@ class Event(Base, FormattingDataRepresentation):
     _price_min = sqlalchemy.Column(sqlalchemy.Integer)
     # In integer rubles
     _price_max = sqlalchemy.Column(sqlalchemy.Integer)
+    # Current status: "active", "hidden"
+    _status = sqlalchemy.Column(sqlalchemy.String(20))
 
     ratings = relationship("Rating", back_populates="event")
 
@@ -58,21 +60,23 @@ class Event(Base, FormattingDataRepresentation):
                'duplicate_source_id: {},' \
                'duplicate_id: {},' \
                'price_min: {},' \
-               'price_max: {}>'.format(self.event_id,
-                                       self.source,
-                                       self.title,
-                                       self.description,
-                                       self.price_kudago,
-                                       self.url,
-                                       self.categories,
-                                       self.image,
-                                       self.start_time,
-                                       self.finish_time,
-                                       self.join_anytime,
-                                       self.duplicate_source_id,
-                                       self.duplicate_id,
-                                       self.price_min,
-                                       self.price_max)
+               'price_max: {}' \
+               'status: {}>'.format(self.event_id,
+                                    self.source,
+                                    self.title,
+                                    self.description,
+                                    self.price_kudago,
+                                    self.url,
+                                    self.categories,
+                                    self.image,
+                                    self.start_time,
+                                    self.finish_time,
+                                    self.join_anytime,
+                                    self.duplicate_source_id,
+                                    self.duplicate_id,
+                                    self.price_min,
+                                    self.price_max,
+                                    self.status)
 
     @property
     def event_id(self):
@@ -121,10 +125,11 @@ class Event(Base, FormattingDataRepresentation):
     @property
     def categories(self):
         """
-        :return: string like "exhibition|kids"
+        :return: list of categories like ["exhibition", "kids"]
         """
-        # TODO: refactor automatically convert from string to set and delete function convert_from_set_to_string
-        return self._categories
+        if self._categories is None:
+            return []
+        return sorted(self._categories.split("|"))
 
     @categories.setter
     def categories(self, value):
@@ -203,6 +208,31 @@ class Event(Base, FormattingDataRepresentation):
             self._price_max = None
         else:
             self._price_max = int(value)
+
+    @property
+    def status(self):
+        return self._status
+
+    @status.setter
+    def status(self, value):
+        self._status = str(value)
+
+    def update_event(self, fresh_event):
+        self.source = fresh_event.source
+        self.title = fresh_event.title
+        self.description = fresh_event.description
+        self.price_kudago = fresh_event.price_kudago
+        self.url = fresh_event.url
+        self.categories = fresh_event.categories
+        self.image = fresh_event.image
+        self.start_time = fresh_event.start_time
+        self.finish_time = fresh_event.finish_time
+        self.join_anytime = fresh_event.join_anytime
+        self.duplicate_source_id = fresh_event.duplicate_source_id
+        self.duplicate_id = fresh_event.duplicate_id
+        self.price_min = fresh_event.price_min
+        self.price_max = fresh_event.price_max
+        self.status = fresh_event.status
 
 
 """

@@ -91,6 +91,7 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         # Now we write to the DB not all sessions with every film (too much every day) but only days
         # when this film is on screens in cinemas
         event.join_anytime = True
+        event.status = "active"
 
         # Complicate handling of dates
         dates = item.get('scheduleInfo', {}).get('dates', [])
@@ -118,3 +119,10 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         for item in source_list:
             categories.add(item['code'])
         return categories
+
+    def _inactivate_not_represented_on_source_events(self, all_events_ids):
+        outdated_events = self._session.query(Event).filter(Event._source == "YandexAfishaCinema").filter(~Event._id.in_(all_events_ids))
+        for event in outdated_events:
+            event.status = "hidden"
+            self._session.add(event)
+        self._session.commit()
