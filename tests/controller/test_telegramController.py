@@ -10,8 +10,8 @@ class TestTelegramController(AbstractTestClass):
 
     def test_telegram_text_message_find_events_cinema_tomorrow(self, session, clear_data):
         # Fulfilling the database for future making answer - film tomorrow
-        start_time = datetime.datetime.now().timestamp() + 86200
-        finish_time = datetime.datetime.now().timestamp() + 86300
+        start_time = datetime.datetime.utcnow().timestamp() + 86200
+        finish_time = datetime.datetime.utcnow().timestamp() + 86300
         event = self.create_event_yandexafishacinema_cinema_venom(start_time, finish_time)
         session.add(event)
         session.commit()
@@ -57,8 +57,8 @@ class TestTelegramController(AbstractTestClass):
 
     def test_telegram_text_message_show_favorites_for_old_user(self, session, clear_data):
         # Fulfilling the database for future making answer - film tomorrow
-        start_time = datetime.datetime.now().timestamp() + 86200
-        finish_time = datetime.datetime.now().timestamp() + 86300
+        start_time = datetime.datetime.utcnow().timestamp() + 86200
+        finish_time = datetime.datetime.utcnow().timestamp() + 86300
         event = self.create_event_yandexafishacinema_cinema_venom(start_time, finish_time)
         session.add(event)
         rating = Rating(user_id=1, event_id=1, like=1)
@@ -106,8 +106,8 @@ class TestTelegramController(AbstractTestClass):
 
     def test_telegram_text_message_like_or_dislike_for_long_queue_events(self, session, clear_data):
         # Fulfilling the database for future making answer - adding two events
-        start_time = datetime.datetime.now().timestamp() + 86200
-        finish_time = datetime.datetime.now().timestamp() + 86300
+        start_time = datetime.datetime.utcnow().timestamp() + 86200
+        finish_time = datetime.datetime.utcnow().timestamp() + 86300
         event1 = self.create_event_yandexafishacinema_cinema_venom(start_time, finish_time)
         session.add(event1)
         event2 = self.create_event_kudago_exhibition_face2face()
@@ -170,13 +170,37 @@ class TestTelegramController(AbstractTestClass):
         controller._text_message(test_bot, test_update_from_telegram)
         assert test_bot.text == "Больше не осталось подходящих событий, поищем что-то еще?"
 
+    def test_telegram_button_push_one_of_events_category(self, session, clear_data):
+        # Fulfilling the database for future making answer - film tomorrow
+        start_time = datetime.datetime.utcnow().timestamp() + 86200
+        finish_time = datetime.datetime.utcnow().timestamp() + 86300
+        event = self.create_event_yandexafishacinema_cinema_venom(start_time, finish_time)
+        session.add(event)
+        session.commit()
+        # Creating objects that I will use in calling method under testing
+        controller = TelegramController()
+        controller.session = session
+        test_bot = BotTest()
+        # Emulate like user in help menu with all categories push button 'Кино'
+        test_update_from_telegram = UpdateFromTelegramTest(text="Кино",
+                                                           chat_id=234,
+                                                           effective_user_id=555,
+                                                           channel_post=None,
+                                                           callback_data="Кино")
+        # Check result of calling "_callback_button_request" method (this method pass result to the 'test_bot' object)
+        controller._callback_button_request(test_bot, test_update_from_telegram)
+        assert test_bot.text == AbstractView.convert_timestamp_to_date_and_time(start_time) + \
+               "<a href='https://afisha.yandex.ru/13Iaf1251.jpg' target='_blank'>.</a>\n" \
+               "<a href='https://afisha.yandex.ru/moscow/cinema/venom-2018' target='_blank'>Веном</a>"
+
 
 class UpdateFromTelegramTest:
 
-    def __init__(self, text, chat_id, effective_user_id, channel_post):
+    def __init__(self, text, chat_id, effective_user_id, channel_post, callback_data=None):
         self.message = MessageTest(text, chat_id)
         self.effective_user = EffectiveUserTest(effective_user_id)
         self.channel_post = channel_post
+        self.callback_query = CallbackQueryTest(callback_data, text, chat_id)
 
 
 class MessageTest:
@@ -190,6 +214,16 @@ class EffectiveUserTest:
 
     def __init__(self, effective_user_id):
         self.id = effective_user_id
+
+
+class CallbackQueryTest:
+
+    def __init__(self, data, text, chat_id):
+        self.data = data
+        self.message = MessageTest(text, chat_id)
+
+    def answer(self):
+        pass
 
 
 class BotTest:
