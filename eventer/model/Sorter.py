@@ -99,7 +99,7 @@ class Sorter:
         feature_values = []
         for event in self._events:
             for_kids = 0
-            if "kids" in event.categories.split("|"):
+            if "kids" in event.categories:
                 for_kids = 1
             feature_values.append(for_kids)
 
@@ -131,6 +131,9 @@ class Sorter:
         5. Feature for every event = sum of weights of all categories of the event / amount of all categories
         :return:
         """
+        # Initialize result variable
+        feature_values = []
+
         liked_events_categories = self._session.query(Rating._event_id, Event._categories).\
             filter(Rating._like == 1).filter(Rating._user_id == self._user.user_id).join(Event).all()
         logging.debug("Liked_events_categories: %s", liked_events_categories)
@@ -142,13 +145,18 @@ class Sorter:
         all_amount_of_categories = len(all_liked_events_categories)
         logging.debug("All_amount_of_categories: %s", all_amount_of_categories)
 
-        liked_categories_and_weight = Counter(all_liked_events_categories)
-        # We will receive like this: Counter({'cinema': 2, 'festival': 1})
+        # If user is new and doesn't like any event yet
+        if all_amount_of_categories == 0:
+            for event in self._events:
+                feature_values.append(0)
+            return feature_values
 
-        feature_values = []
+        # We will receive like this: Counter({'cinema': 2, 'festival': 1})
+        liked_categories_and_weight = Counter(all_liked_events_categories)
+
         for event in self._events:
             value = 0
-            event_categories = event.categories.split('|')
+            event_categories = event.categories
             for category in event_categories:
                 if category in liked_categories_and_weight:
                     value += liked_categories_and_weight[category]

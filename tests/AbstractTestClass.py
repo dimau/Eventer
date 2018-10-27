@@ -2,6 +2,7 @@ import pytest
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
 from Base_class_sql_alchemy import Base
+from Event import Event
 
 
 class AbstractTestClass:
@@ -40,3 +41,37 @@ class AbstractTestClass:
         assert event1.price_min == event2.price_min
         assert event1.price_max == event2.price_max
         assert event1.status == event2.status
+
+    @staticmethod
+    def create_event_kudago_exhibition_face2face():
+        event = Event()
+        event.source = "KudaGo"
+        event.title = "выставка Face 2 Face"
+        event.description = "<p>Хотите лицом к лицу встретиться с героями известных фильмов?</p>"
+        event.price_kudago = "от 0 до 650 рублей"
+        event.url = "https://kudago.com/msk/event/vyistavka-face-2-face"
+        event.categories = {"exhibition", "kids", "интерактивные", "новые технологии", "детские", "новое на сайте",
+                            "выставки", "детские (раздел детям)", "всей семьей", "фэнтези", "интересное",
+                            "выходные с детьми"}
+        event.image = "https://kudago.com/media/images/event/e1/6f/e16fa25bbf494ca18def9aa9580a5f5f.JPG"
+        event.start_time = 4695469200
+        event.finish_time = 4699825200
+        event.join_anytime = False
+        event.price_min = 0
+        event.status = "active"
+        return event
+
+    @staticmethod
+    def create_event_yandexafishacinema_cinema_venom(start_time=4695148800, finish_time=4695235199):
+        event = Event()
+        event.source = "YandexAfishaCinema"
+        event.title = "Веном"
+        event.description = "С участием Вуди Харрельсона"
+        event.url = "https://afisha.yandex.ru/moscow/cinema/venom-2018"
+        event.categories = {"thriller", "adventure", "fiction", "action", "horror", "cinema"}
+        event.image = "https://afisha.yandex.ru/13Iaf1251.jpg"
+        event.start_time = start_time
+        event.finish_time = finish_time
+        event.join_anytime = True
+        event.status = "active"
+        return event

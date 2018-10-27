@@ -8,7 +8,8 @@ from sqlalchemy.orm import sessionmaker
 
 class AbstractController:
 
-    def _launch_logging(self, log_file_name, log_level="INFO"):
+    @staticmethod
+    def _launch_logging(log_file_name, log_level="INFO"):
         numeric_level = getattr(logging, log_level.upper(), None)
         if not isinstance(numeric_level, int):
             raise ValueError("Invalid log level: {}".format(log_level))
@@ -17,7 +18,8 @@ class AbstractController:
                             filename='/var/log/eventer/' + log_file_name
                             )
 
-    def _create_session_with_db(self):
+    @staticmethod
+    def _create_session_with_db():
         user_for_mysql = os.environ.get("USERMYSQL", None)
         if not user_for_mysql:
             logging.error("Cannot find environment variable USERMYSQL")

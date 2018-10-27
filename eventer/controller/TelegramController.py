@@ -26,8 +26,10 @@ class TelegramController(AbstractController):
         args = self._extracting_parameters_from_command_line()
 
         # Launch logging with giving level
-        log_level = args.loglevel if args.loglevel else "INFO"
-        self._launch_logging("telegram_bot.log", log_level)
+        self._launch_logging("telegram_bot.log", args['log'])
+
+        # Start session with database
+        self.session = self._create_session_with_db()
 
         # Get telegram_token from environment variable
         telegram_token = self._get_telegram_token_from_environment_variable()
@@ -35,10 +37,6 @@ class TelegramController(AbstractController):
         # Create main objects for telegram working
         updater = Updater(token=telegram_token)
         dispatcher = updater.dispatcher
-
-        # Start session with database
-        self.session = self._create_session_with_db()
-
         # Create handlers of telegram events
         start_command_handler = CommandHandler('start', self._start_command)
         text_message_handler = MessageHandler(Filters.text, self._text_message)
@@ -54,25 +52,33 @@ class TelegramController(AbstractController):
         # Stop bot if Ctrl + C were pushed in console
         updater.idle()
 
-    def _extracting_parameters_from_command_line(self):
+    @staticmethod
+    def _extracting_parameters_from_command_line():
         """
         Extracting parameters from command line
         We are expecting launch by command like: 'python eventer/model/TelegramController.py --log=INFO'
         :return:
         """
+        result_args = {
+            'log': "INFO"
+        }
         parser = argparse.ArgumentParser(description='parser of arguments of command line for telegram bot launch')
-        parser.add_argument('--log', action='store', dest='loglevel', help='level of logging for this launch')
+        parser.add_argument('--log', action='store', dest='log', help='level of logging for this launch')
         args = parser.parse_args()
-        return args
+        if args.log and args.log.upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+            result_args['log'] = args.log.upper()
+        return result_args
 
-    def _get_telegram_token_from_environment_variable(self):
+    @staticmethod
+    def _get_telegram_token_from_environment_variable():
         telegram_token = os.environ.get("TELEGRAMTOKEN", None)
         if not telegram_token:
             logging.error("Cannot find environment variable TELEGRAMTOKEN")
             raise KeyError("Cannot find environment variable TELEGRAMTOKEN")
         return telegram_token
 
-    def _extract_telegram_user_id(self, update_from_telegram):
+    @staticmethod
+    def _extract_telegram_user_id(update_from_telegram):
         """
         Extract telegram user id from Update
         :param update_from_telegram:
@@ -84,7 +90,6 @@ class TelegramController(AbstractController):
             user_telegram_id = None
         return user_telegram_id
 
-    # Initialize user
     def _get_user(self, update_from_telegram):
         """
         Function to get user from our database by its telegram id
@@ -185,10 +190,10 @@ class TelegramController(AbstractController):
         logging.info("Status of sending message from telegram: %s", status_of_sending_message)
 
     def _handle_request(self, user_message_text, type_user_message, user):
-        router = Router(user_message_text=user_message_text, session_with_db=self.session, user=user,
-                        type_user_message=type_user_message)
-        logging.debug("Router has been created: %s", router)
-        answer_maker = router.get_answer_maker()
+        answer_maker = Router.get_answer_maker(user_message_text=user_message_text,
+                                               session_with_db=self.session,
+                                               user=user,
+                                               type_user_message=type_user_message)
         logging.info('Answer maker is: %s', answer_maker)
         data_for_answer = answer_maker.get_answer()
         logging.info('Data for answer from answer maker: %s', data_for_answer)
@@ -199,7 +204,8 @@ class TelegramController(AbstractController):
         image_preview = TelegramView.is_not_allowed_images_preview(data_for_answer)
         return text_answer, buttons_answer, message_buttons, image_preview
 
-    def _inline_text(self, bot, update_from_telegram):
+    @staticmethod
+    def _inline_text(bot, update_from_telegram):
         status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
                                                      parse_mode='HTML',
                                                      text="Я в таком режиме не умею работать")

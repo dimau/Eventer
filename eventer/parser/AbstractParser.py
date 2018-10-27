@@ -7,17 +7,22 @@ from Event import Event
 
 class AbstractParser:
 
-    def __init__(self, session):
+    def __init__(self, session, mode):
+        """
+        :param session: object SQL Alchemy - session with database
+        :param mode:
+            'only_new' = parser get only new events from the top of the list until it reach the parsing pointer value
+            'full' = parser get all events and save to the database only new of them without changing already existing in our database
+            'full_with_updating' = parser get all events, updating already saved events and deleting not existing on the source events
+        """
         self._session = session
+        self._mode = mode
 
-    def main(self, mode='only_new', test_url=None):
+    def main(self, test_url=None):
         """
         This method downloads list of events from source (in cycle with parameter page number)
         and save new data to database while we face parsing pointer (it means, that we have reached last successfully
         handled event from this source)
-        :param mode: 'only_new' = parser get only new events from the top of the list until it reach the parsing pointer value
-                     'full' = parser get all events and save to the database only new of them without changing already existing in our database
-                     'full_with_updating' = parser get all events, updating already saved events and deleting not existing on the source events
         :param test_url: you can transmit test url for testing purpose, in this case _make_url() will use this url (usually localhost url)
         :return:
         """
@@ -63,14 +68,14 @@ class AbstractParser:
                 if len(events) == 0:
                     continue
                 # We are gathering the list of all actual events for now from the source
-                if mode == "full_with_updating":
+                if self._mode == "full_with_updating":
                     all_events_ids.append(events[0].url)
 
                 # We are trying to find the same event in the database. For every event.
                 # For 'only_new' and 'full' mode it helps to avoid duplicates in database
                 # For 'full_with_updating' mode it helps change existing in the database events
                 # Result depends on mode of parsing, but in any case we get list of events for adding to the session with database
-                events_for_db, already_saved_event_in_collection = self._checking_events_in_database(mode, previous_parsing_pointer_value, events)
+                events_for_db, already_saved_event_in_collection = self._checking_events_in_database(previous_parsing_pointer_value, events)
                 events_collection_normalized += events_for_db
 
             # Save new parsing pointer - only in the beginning of this iteration of parsing
@@ -93,7 +98,7 @@ class AbstractParser:
             # List of events from source has to be sorted by field where is value for parsing pointer.
             # If we have an event more than parsing pointer, it means that we work with event was
             # parsed last time and we don't have to continue
-            if mode == "only_new" and already_saved_event_in_collection:
+            if self._mode == "only_new" and already_saved_event_in_collection:
                 break
             # It can prevent DDOS attack for the source file
             if page_number == 1000:
@@ -105,7 +110,7 @@ class AbstractParser:
             time.sleep(1)
 
         # Inactivate events in the database which are not represented in the source for now
-        if mode == "full_with_updating":
+        if self._mode == "full_with_updating":
             self._inactivate_not_represented_on_source_events(all_events_ids)
 
         # For test purpose - we can check how many pages we have handled
@@ -146,13 +151,13 @@ class AbstractParser:
     def _item_parser(self, item):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _checking_events_in_database(self, mode, previous_parsing_pointer_value, events):
+    def _checking_events_in_database(self, previous_parsing_pointer_value, events):
 
         # Initialisation of vars
         events_for_db = events
         already_saved_event_in_collection = False
 
-        if mode == "only_new":
+        if self._mode == "only_new":
             if self._check_parsing_pointer(events[0], previous_parsing_pointer_value):
                 logging.info('We have already handled this event')
                 already_saved_event_in_collection = True
@@ -160,7 +165,7 @@ class AbstractParser:
             else:
                 logging.info('It is a new event')
 
-        if mode == "full":
+        if self._mode == "full":
             if self._check_is_this_event_in_db_already(events[0]):
                 logging.info('We have already handled this event')
                 already_saved_event_in_collection = True
@@ -168,7 +173,7 @@ class AbstractParser:
             else:
                 logging.info('It is a new event')
 
-        if mode == "full_with_updating":
+        if self._mode == "full_with_updating":
             same_events_in_db = self._get_same_events_from_db(events[0])
             logging.info('This event is already in our database: %s', len(same_events_in_db))
             events_for_db = self._update_events_from_db(same_events_in_db, events)

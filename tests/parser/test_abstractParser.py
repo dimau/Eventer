@@ -10,6 +10,7 @@ import copy
 class TestAbstractParser(AbstractTestClass):
 
     def test_update_events_from_db(self, session, clear_data):
+        # TODO: create events in abstract test class (remember that these events emulate events from database not from url)
         # Form event № 1
         event_from_database_for_updating = Event()
         event_from_database_for_updating._id = 78
