@@ -18,8 +18,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Куда сходить в кино завтра",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Куда сходить в кино завтра",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -33,8 +33,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Белиберда",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Белиберда",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -46,8 +46,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Избранное",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Избранное",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -67,8 +67,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Избранное",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Избранное",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -82,8 +82,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Привет",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Привет",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -95,8 +95,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Помощь",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Помощь",
                                                            chat_id=234,
                                                            effective_user_id=555,
                                                            channel_post=None)
@@ -120,8 +120,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Нравится",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Нравится",
                                                            chat_id=234,
                                                            effective_user_id=777,
                                                            channel_post=None)
@@ -143,8 +143,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Нравится",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Нравится",
                                                            chat_id=234,
                                                            effective_user_id=777,
                                                            channel_post=None)
@@ -161,8 +161,8 @@ class TestTelegramController(AbstractTestClass):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
         controller.session = session
-        test_bot = TestBot()
-        test_update_from_telegram = TestUpdateFromTelegram(text="Нравится",
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Нравится",
                                                            chat_id=234,
                                                            effective_user_id=777,
                                                            channel_post=None)
@@ -171,28 +171,28 @@ class TestTelegramController(AbstractTestClass):
         assert test_bot.text == "Больше не осталось подходящих событий, поищем что-то еще?"
 
 
-class TestUpdateFromTelegram:
+class UpdateFromTelegramTest:
 
     def __init__(self, text, chat_id, effective_user_id, channel_post):
-        self.message = TestMessage(text, chat_id)
-        self.effective_user = TestEffectiveUser(effective_user_id)
+        self.message = MessageTest(text, chat_id)
+        self.effective_user = EffectiveUserTest(effective_user_id)
         self.channel_post = channel_post
 
 
-class TestMessage:
+class MessageTest:
 
     def __init__(self, text, chat_id):
         self.text = text
         self.chat_id = chat_id
 
 
-class TestEffectiveUser:
+class EffectiveUserTest:
 
     def __init__(self, effective_user_id):
         self.id = effective_user_id
 
 
-class TestBot:
+class BotTest:
 
     def __init__(self):
         self.chat_id = None
