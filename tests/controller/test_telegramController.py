@@ -29,6 +29,30 @@ class TestTelegramController(AbstractTestClass):
                "<a href='https://afisha.yandex.ru/13Iaf1251.jpg' target='_blank'>.</a>\n" \
                "<a href='https://afisha.yandex.ru/moscow/cinema/venom-2018' target='_blank'>Веном</a>"
 
+    def test_telegram_text_message_find_events_cinema_tomorrow_with_duplicates(self, session, clear_data):
+        # Fulfilling the database for future making answer - film tomorrow
+        start_time = datetime.datetime.utcnow().timestamp() + 86200
+        finish_time = datetime.datetime.utcnow().timestamp() + 86300
+        event1 = self.create_event_yandexafishacinema_cinema_venom(start_time, finish_time, duplicate_id=1)
+        event2 = self.create_event_yandexafishacinema_cinema_venom(start_time + 50, finish_time + 50, duplicate_id=1)
+        session.add(event1)
+        session.add(event2)
+        session.commit()
+        # Creating objects that I will use in calling method under testing
+        controller = TelegramController()
+        controller.session = session
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="Куда сходить в кино завтра",
+                                                           chat_id=234,
+                                                           effective_user_id=555,
+                                                           channel_post=None)
+        # Check result of calling "_text_message" method (this method pass result to the 'test_bot' object)
+        controller._text_message(test_bot, test_update_from_telegram)
+        assert test_bot.text == AbstractView.convert_timestamp_to_date_and_time(start_time) + "\n" + \
+               AbstractView.convert_timestamp_to_date_and_time(start_time + 50) + \
+               "<a href='https://afisha.yandex.ru/13Iaf1251.jpg' target='_blank'>.</a>\n" \
+               "<a href='https://afisha.yandex.ru/moscow/cinema/venom-2018' target='_blank'>Веном</a>"
+
     def test_telegram_text_message_fallback(self, session, clear_data):
         # Creating objects that I will use in calling method under testing
         controller = TelegramController()
@@ -192,6 +216,19 @@ class TestTelegramController(AbstractTestClass):
         assert test_bot.text == AbstractView.convert_timestamp_to_date_and_time(start_time) + \
                "<a href='https://afisha.yandex.ru/13Iaf1251.jpg' target='_blank'>.</a>\n" \
                "<a href='https://afisha.yandex.ru/moscow/cinema/venom-2018' target='_blank'>Веном</a>"
+
+    def test_telegram_start_command(self, session, clear_data):
+        # Creating objects that I will use in calling method under testing
+        controller = TelegramController()
+        controller.session = session
+        test_bot = BotTest()
+        test_update_from_telegram = UpdateFromTelegramTest(text="It doesn't matter what is here",
+                                                           chat_id=234,
+                                                           effective_user_id=555,
+                                                           channel_post=None)
+        # Check result of calling "_text_message" method (this method pass result to the 'test_bot' object)
+        controller._start_command(test_bot, test_update_from_telegram)
+        assert "Я подскажу, куда сходить в Москве" in test_bot.text
 
 
 class UpdateFromTelegramTest:

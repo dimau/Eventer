@@ -62,7 +62,7 @@ class AbstractTestClass:
         return event
 
     @staticmethod
-    def create_event_yandexafishacinema_cinema_venom(start_time=4695148800, finish_time=4695235199):
+    def create_event_yandexafishacinema_cinema_venom(start_time=4695148800, finish_time=4695235199, duplicate_id=None):
         event = Event()
         event.source = "YandexAfishaCinema"
         event.title = "Веном"
@@ -73,5 +73,6 @@ class AbstractTestClass:
         event.start_time = start_time
         event.finish_time = finish_time
         event.join_anytime = True
+        event.duplicate_id = duplicate_id
         event.status = "active"
         return event
