@@ -51,6 +51,8 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
             'hasMixed': "0",
             'city': 'moscow'
         }
+
+        logging.info('Url for parsing: %s', url)
         return url
 
     def _list_parser(self, url_content):
@@ -65,7 +67,9 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         except Exception as e:
             logging.error("Bad url content: %s error: %s", url_content, e)
             return None
-        return url_content_json['data']
+        list_with_results = url_content_json.get('data', [])
+        logging.info('We have extracted from page in our list %s events', len(list_with_results))
+        return list_with_results
 
     def _item_parser(self, item):
         """
@@ -109,7 +113,7 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
             event.start_time = 0
             event.finish_time = 0
             events.append(event)
-        logging.debug('final list of events: %s', events)
+        logging.debug('Events after item parsing: %s', events)
         return events
 
     @staticmethod

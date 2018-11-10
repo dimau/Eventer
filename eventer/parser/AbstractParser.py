@@ -44,7 +44,6 @@ class AbstractParser:
 
             # Make an url for parsing
             url = self._make_url(page=page_number, test_url=test_url)
-            logging.info('Url for parsing: %s', url)
 
             # Get url content and stop parsing if we have got not 200 code or empty page or something like this
             url_content = self._get_url_content(url)
@@ -55,7 +54,6 @@ class AbstractParser:
             events_collection_source = self._list_parser(url_content)
             if not events_collection_source:
                 break
-            logging.info('We have extracted from page in our list %s events', len(events_collection_source))
 
             # Look over all events from the list and create Event object for every event
             # Events_collection_normalized will contains all NEW Events after whole parsing cycle
@@ -64,7 +62,6 @@ class AbstractParser:
 
                 # Parsing of one event in the list into list of related Event objects
                 events = self._item_parser(item)
-                logging.debug('Events after item parsing: %s', events)
                 if len(events) == 0:
                     continue
                 # We are gathering the list of all actual events for now from the source

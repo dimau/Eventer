@@ -64,6 +64,8 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
             'fields': 'id,publication_date,dates,title,short_title,slug,place,description,body_text,location,categories,tagline,age_restriction,price,is_free,images,favorites_count,comments_count,site_url,tags,participants',
             'page': page
         }
+
+        logging.info('Url for parsing: %s', url)
         return url
 
     def _list_parser(self, url_content):
@@ -78,7 +80,9 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         except Exception as e:
             logging.error("Bad url content: %s error: %s", url_content, e)
             return None
-        return url_content_json['results']
+        list_with_results = url_content_json.get('results', [])
+        logging.info('We have extracted from page in our list %s events', len(list_with_results))
+        return list_with_results
 
     def _item_parser(self, item):
         """
@@ -123,7 +127,7 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
             event.start_time = 0
             event.finish_time = 0
             events.append(event)
-        logging.debug('final list of events: %s', events)
+        logging.debug('Events after item parsing: %s', events)
         return events
 
     @staticmethod
