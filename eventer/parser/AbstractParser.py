@@ -7,16 +7,18 @@ from Event import Event
 
 class AbstractParser:
 
-    def __init__(self, session, mode):
+    def __init__(self, session, mode, page_limit):
         """
         :param session: object SQL Alchemy - session with database
         :param mode:
             'only_new' = parser get only new events from the top of the list until it reach the parsing pointer value
             'full' = parser get all events and save to the database only new of them without changing already existing in our database
             'full_with_updating' = parser get all events, updating already saved events and deleting not existing on the source events
+        :param page_limit: max amount of pages for one-time parsing, protection from DDoS attack for source site
         """
         self._session = session
         self._mode = mode
+        self._page_limit = page_limit
 
     def main(self, test_url=None):
         """
@@ -98,7 +100,7 @@ class AbstractParser:
             if self._mode == "only_new" and already_saved_event_in_collection:
                 break
             # It can prevent DDOS attack for the source file
-            if page_number == 1000:
+            if page_number == self._page_limit:
                 break
 
             page_number += 1

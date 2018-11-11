@@ -26,6 +26,7 @@ class ParsingController(AbstractController):
         self.source = None
         self.log_level = None
         self.mode = None
+        self.page_limit = None
 
     def main(self):
         # Extracting parameters from command line
@@ -33,6 +34,7 @@ class ParsingController(AbstractController):
         self.source = args['source']
         self.log_level = args['log']
         self.mode = args['mode']
+        self.page_limit = args['page_limit']
 
         # Launch logging with giving level
         self._launch_logging("parsing.log", self.log_level)
@@ -58,12 +60,14 @@ class ParsingController(AbstractController):
         result_args = {
             'source': None,
             'log': "INFO",
-            'mode': None
+            'mode': None,
+            'page_limit': 1000
         }
         parser = argparse.ArgumentParser(description='parser of arguments of command line for parsing launch')
         parser.add_argument('-s', '--source', action='store', dest='source', help='codename source for parsing')
         parser.add_argument('--log', action='store', dest='log', help='level of logging for this launch')
         parser.add_argument('--mode', action='store', dest='mode', help='mode of parsing - only_new or full')
+        parser.add_argument('--page_limit', action='store', dest='page_limit', help='max amount of pages for one-time parsing, protection from DDoS attack for source site')
         args = parser.parse_args()
         if args.source and args.source in ['KudaGo', 'YandexAfishaCinema', 'YandexAfishaTheater']:
             result_args['source'] = args.source
@@ -71,6 +75,8 @@ class ParsingController(AbstractController):
             result_args['log'] = args.log.upper()
         if args.mode and args.mode in ['only_new', 'full', 'full_with_updating']:
             result_args['mode'] = args.mode
+        if args.page_limit:
+            result_args['page_limit'] = int(args.page_limit)
         return result_args
 
     @staticmethod
@@ -91,15 +97,15 @@ class ParsingController(AbstractController):
         logging.debug('Enter to the method, source: %s', self.source)
         if self.source == "KudaGo":
             from KudaGoParser import KudaGoParser
-            parser = KudaGoParser(self.session, self.mode)
+            parser = KudaGoParser(self.session, self.mode, self.page_limit)
             return parser
         if self.source == "YandexAfishaCinema":
             from YandexAfishaCinemaParser import YandexAfishaCinemaParser
-            parser = YandexAfishaCinemaParser(self.session, self.mode)
+            parser = YandexAfishaCinemaParser(self.session, self.mode, self.page_limit)
             return parser
         if self.source == "YandexAfishaTheater":
             from YandexAfishaTheaterParser import YandexAfishaTheaterParser
-            parser = YandexAfishaTheaterParser(self.session, self.mode)
+            parser = YandexAfishaTheaterParser(self.session, self.mode, self.page_limit)
             return parser
         logging.error('Wrong source parameter!')
         raise ValueError("source parameter is wrong: " + str(self.source))
