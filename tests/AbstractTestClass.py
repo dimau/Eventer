@@ -76,3 +76,23 @@ class AbstractTestClass:
         event.duplicate_id = duplicate_id
         event.status = "active"
         return event
+
+    @staticmethod
+    def create_event_yandexafishatheater_theater_beshenyedengi(start_time=4695148800, finish_time=4695235199, duplicate_id=None):
+        event = Event()
+        event.source = "YandexAfishaTheater"
+        event.title = "Бешеные деньги"
+        event.description = "В главной роли Светлана Немоляева"
+        event.url = "https://afisha.yandex.ru/moscow/theatre_show/beshenye-dengi-teatr-im-maiakovskogo"
+        event.categories = {"theatre", "theatre_show", "nearest-events", "comedy", "season-premiere", "top-persons",
+                            "hitprodazh-badge", "newyear-vacations", "theatre-feedback", "family-theatre",
+                            "traditional-theatre", "theater"}
+        event.image = "https://avatars.mds.yandex.net/get-afishanew/21422/5543036bb12f14c5b8ac13e180071c83/s270x135"
+        event.start_time = start_time
+        event.finish_time = finish_time
+        event.join_anytime = False
+        event.duplicate_id = duplicate_id
+        event.status = "active"
+        event.price_min = 400
+        event.price_max = 6000
+        return event

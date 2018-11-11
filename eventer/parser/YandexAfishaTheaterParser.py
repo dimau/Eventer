@@ -5,6 +5,8 @@ from Event import Event
 import logging
 import copy
 import datetime
+from bs4 import BeautifulSoup
+import re
 
 
 class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
@@ -92,11 +94,13 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         event.description = item.get('event', {}).get('argument', None)
         event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
         event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
-        # Now we write to the DB not all sessions with every film (too much every day) but only days
-        # when this film is on screens in cinemas
         event.join_anytime = False
         event.status = "active"
         event.price_min, event.price_max = self._get_price_from_json(item)
+
+        # We have get a page of this event and extract time for every date
+        times = self._get_times_of_event(event.url)
+        print(str(times))
 
         # Complicate handling of dates
         dates = item.get('scheduleInfo', {}).get('dates', [])
@@ -120,7 +124,7 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
     @staticmethod
     def _get_all_categories(source_list):
         categories = set()
-        categories.add("cinema")
+        categories.add("theater")
         for item in source_list:
             categories.add(item['code'])
         return categories
@@ -145,6 +149,62 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
 
         # Return result
         return price_min, price_max
+
+    def _get_times_of_event(self, url):
+        """
+        This method extracting concrete times of the beginning the event for every date and duration of the event.
+        Return list of tuples like (date, start_time, finish_time) or [] if something goes wrong
+        :param url:
+        :return: example: ()
+        """
+        all_dates_and_times = []
+
+        # Getting of the HTML content for url
+        url_content = self._get_url_content(url)
+        if url_content.status_code != 200:
+            return all_dates_and_times
+        content_text = url_content.text
+        soup = BeautifulSoup(content_text)
+
+        # Extracting of the duration of the event
+        try:
+            duration = soup.find('dt', class_='event-attributes__category', text="Время").parent.find('dd', class_='event-attributes__category-value').text
+            duration = re.search(r'\d+', duration).group()
+            duration = int(duration) * 60  # Convert from minutes to seconds
+        except AttributeError as e:
+            duration = 0
+
+        # Extracting dates and times for the event
+        all_dates_source = soup.find_all('div', class_='schedule-other-list__item')
+        try:
+            for day in all_dates_source:
+                date_date = day.find('div', class_='schedule-date__date').text
+                date_month = self._convert_month_to_int(day.find('div', class_='schedule-date__month').text)
+                date_time = day.find('div', class_='schedule-session').text
+                all_dates_and_times.append((date_date + "-" + date_month, date_time, date_time + duration))
+        except AttributeError as e:
+            all_dates_and_times = []
+
+        return all_dates_and_times
+
+    @staticmethod
+    def _convert_month_to_int(month):
+        source_month = str(month)
+        converter = {
+            "января": "1",
+            "февраля": "2",
+            "марта": "3",
+            "апреля": "4",
+            "мая": "5",
+            "июня": "6",
+            "июля": "7",
+            "августа": "8",
+            "сентября": "9",
+            "октября": "10",
+            "ноября": "11",
+            "декабря": "12"
+        }
+        return converter.get(source_month, None)
 
     def _inactivate_not_represented_on_source_events(self, all_events_ids):
         outdated_events = self._session.query(Event).filter(Event._source == "YandexAfishaTheater").filter(~Event._id.in_(all_events_ids))
