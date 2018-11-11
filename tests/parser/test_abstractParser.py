@@ -28,6 +28,8 @@ class TestAbstractParser(AbstractTestClass):
         event_from_database_for_updating.duplicate_id = 45
         event_from_database_for_updating.price_min = 0
         event_from_database_for_updating.price_max = 25
+        event_from_database_for_updating.source_rating_value = 2
+        event_from_database_for_updating.source_rating_count = 2
         event_from_database_for_updating.status = "active"
         # Form event № 2
         event_from_source_for_updating = Event()
@@ -45,6 +47,8 @@ class TestAbstractParser(AbstractTestClass):
         event_from_source_for_updating.duplicate_id = 0
         event_from_source_for_updating.price_min = 500
         event_from_source_for_updating.price_max = 500
+        event_from_database_for_updating.source_rating_value = 2
+        event_from_database_for_updating.source_rating_count = 2
         event_from_source_for_updating.status = "active"
         # Form event № 3
         event_from_database_for_inactivating = Event()

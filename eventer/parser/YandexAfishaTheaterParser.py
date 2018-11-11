@@ -87,14 +87,20 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         try:
             event.title = item['event']['title']
             event.url = 'https://afisha.yandex.ru' + item['event']['url']
-        except KeyError:
+        except (KeyError, AttributeError):
             return []
+        # This extracting can spawn an exception
+        try:
+            event.description = item.get('event', {}).get('argument', None)
+            event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
+            event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
+            event.source_rating_value = item.get('event', {}).get('userRating', {}).get('overall', {}).get('value', None)
+            event.source_rating_count = item.get('event', {}).get('userRating', {}).get('overall', {}).get('count', None)
+        except (KeyError, AttributeError):
+            pass
         event.source = "YandexAfishaTheater"
-        event.description = item.get('event', {}).get('argument', None)
-        event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
-        event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
-        event.join_anytime = False
         event.status = "active"
+        event.join_anytime = False
         event.price_min, event.price_max = self._get_price_from_json(item)
 
         # We have one more url request for this event and extracting start_times for every date

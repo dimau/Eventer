@@ -87,16 +87,22 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         try:
             event.title = item['event']['title']
             event.url = 'https://afisha.yandex.ru' + item['event']['url']
-        except KeyError:
+        except (KeyError, AttributeError):
             return []
+        # This extracting can spawn an exception
+        try:
+            event.description = item.get('event', {}).get('argument', None)
+            event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
+            event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
+            event.source_rating_value = item.get('event', {}).get('kinopoisk', {}).get('value', None)
+            event.source_rating_count = item.get('event', {}).get('kinopoisk', {}).get('votes', None)
+        except (KeyError, AttributeError):
+            pass
         event.source = "YandexAfishaCinema"
-        event.description = item.get('event', {}).get('argument', None)
-        event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
-        event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
+        event.status = "active"
         # Now we write to the DB not all sessions with every film (too much every day) but only days
         # when this film is on screens in cinemas
         event.join_anytime = True
-        event.status = "active"
 
         # Complicate handling of dates
         dates = item.get('scheduleInfo', {}).get('dates', [])

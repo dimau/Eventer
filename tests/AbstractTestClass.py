@@ -40,6 +40,8 @@ class AbstractTestClass:
         assert event1.duplicate_id == event2.duplicate_id
         assert event1.price_min == event2.price_min
         assert event1.price_max == event2.price_max
+        assert event1.source_rating_value == event2.source_rating_value
+        assert event1.source_rating_count == event2.source_rating_count
         assert event1.status == event2.status
 
     @staticmethod
@@ -58,6 +60,7 @@ class AbstractTestClass:
         event.finish_time = 4699825200
         event.join_anytime = False
         event.price_min = 0
+        event.source_rating_count = 2
         event.status = "active"
         return event
 
@@ -74,6 +77,8 @@ class AbstractTestClass:
         event.finish_time = finish_time
         event.join_anytime = True
         event.duplicate_id = duplicate_id
+        event.source_rating_value = 7
+        event.source_rating_count = 14379
         event.status = "active"
         return event
 
@@ -92,6 +97,8 @@ class AbstractTestClass:
         event.finish_time = finish_time
         event.join_anytime = False
         event.duplicate_id = duplicate_id
+        event.source_rating_value = 9.1
+        event.source_rating_count = 166
         event.status = "active"
         event.price_min = 400
         event.price_max = 6000

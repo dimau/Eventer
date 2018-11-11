@@ -37,6 +37,10 @@ class Event(Base, FormattingDataRepresentation):
     _price_min = sqlalchemy.Column(sqlalchemy.Integer)
     # In integer rubles
     _price_max = sqlalchemy.Column(sqlalchemy.Integer)
+    # Rating of the event in source, we use always scale from 0 to 10 for rating!
+    _source_rating_value = sqlalchemy.Column(sqlalchemy.Float)
+    # Amount of users who has gave rating
+    _source_rating_count = sqlalchemy.Column(sqlalchemy.Integer)
     # Current status: "active", "hidden"
     _status = sqlalchemy.Column(sqlalchemy.String(20))
 
@@ -61,6 +65,8 @@ class Event(Base, FormattingDataRepresentation):
                'duplicate_id: {},' \
                'price_min: {},' \
                'price_max: {}' \
+               'source_rating_value: {}' \
+               'source_rating_count: {}' \
                'status: {}>'.format(self.event_id,
                                     self.source,
                                     self.title,
@@ -76,6 +82,8 @@ class Event(Base, FormattingDataRepresentation):
                                     self.duplicate_id,
                                     self.price_min,
                                     self.price_max,
+                                    self.source_rating_value,
+                                    self.source_rating_count,
                                     self.status)
 
     @property
@@ -204,6 +212,22 @@ class Event(Base, FormattingDataRepresentation):
         self._price_max = int(value) if value is not None else None
 
     @property
+    def source_rating_value(self):
+        return self._source_rating_value
+
+    @source_rating_value.setter
+    def source_rating_value(self, value):
+        self._source_rating_value = float(value) if value is not None else None
+
+    @property
+    def source_rating_count(self):
+        return self._source_rating_count
+
+    @source_rating_count.setter
+    def source_rating_count(self, value):
+        self._source_rating_count = int(value) if value is not None else None
+
+    @property
     def status(self):
         return self._status
 
@@ -226,6 +250,8 @@ class Event(Base, FormattingDataRepresentation):
         self.duplicate_id = fresh_event.duplicate_id
         self.price_min = fresh_event.price_min
         self.price_max = fresh_event.price_max
+        self.source_rating_value = fresh_event.source_rating_value
+        self.source_rating_count = fresh_event.source_rating_count
         self.status = fresh_event.status
 
 

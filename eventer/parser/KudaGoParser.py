@@ -101,17 +101,23 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
             event.title = item['title']
             event.url = 'https://kudago.com/' + item['location']['slug'] + '/event/' + item['slug']
             event.publication_date = item['publication_date']
-        except KeyError:
+        except (KeyError, AttributeError):
             return []
+        # This extracting can spawn an exception
+        try:
+            event.description = item.get('description', None)
+            event.price_kudago = item.get('price', None)
+            event.price_min, event.price_max = self._get_price_from_string(item.get('price', ""),
+                                                                           item.get('is_free', ""))
+            event.categories = item.get('categories', []) + item.get('tags', [])
+            if len(item.get('images', [])) > 0:
+                event.image = item['images'][0]['image']
+            event.source_rating_count = item.get('favorites_count', None)
+        except (KeyError, AttributeError):
+            pass
         event.source = "KudaGo"
-        event.description = item.get('description', None)
-        event.price_kudago = item.get('price', None)
-        event.price_min, event.price_max = self._get_price_from_string(item.get('price', ""), item.get('is_free', ""))
-        event.categories = item.get('categories', []) + item.get('tags', [])
-        if len(item.get('images', [])) > 0:
-            event.image = item['images'][0]['image']
-        event.join_anytime = False
         event.status = "active"
+        event.join_anytime = False
 
         # Complicate handling of dates
         dates = item.get('dates', [])
