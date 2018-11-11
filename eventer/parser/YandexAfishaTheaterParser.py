@@ -5,6 +5,7 @@ from Event import Event
 import logging
 import copy
 import datetime
+import time
 
 
 class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
@@ -105,6 +106,7 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
 
         # We have one more url request for this event and extracting start_times for every date
         yandex_event_id = item.get('event', {}).get('id', None)
+        time.sleep(1)  # Add sleep to don't ddos attack source server
         start_times = self._get_start_times_of_the_event(yandex_event_id, test_url=test_url)
 
         # Complicate handling of dates
