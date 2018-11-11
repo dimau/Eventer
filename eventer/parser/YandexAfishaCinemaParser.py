@@ -71,10 +71,11 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         logging.info('We have extracted from page in our list %s events', len(list_with_results))
         return list_with_results
 
-    def _item_parser(self, item):
+    def _item_parser(self, item, test_url=None):
         """
         Extract fields from source HTML or JSON to create Event from them and save to database
         :param item:
+        :param test_url: uses if method have download additional data from the page of concrete event and parse it
         :return: return list of events, in most cases it will contain only one item, but if event has several dates,
         every date will have its own event in list
         """

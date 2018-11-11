@@ -88,7 +88,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @source.setter
     def source(self, value):
-        self._source = str(value) if value else None
+        self._source = str(value) if value is not None else None
 
     @property
     def title(self):
@@ -96,7 +96,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @title.setter
     def title(self, value):
-        self._title = str(value) if value else None
+        self._title = str(value) if value is not None else None
 
     @property
     def description(self):
@@ -104,7 +104,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @description.setter
     def description(self, value):
-        self._description = str(value) if value else None
+        self._description = str(value) if value is not None else None
 
     @property
     def price_kudago(self):
@@ -112,7 +112,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @price_kudago.setter
     def price_kudago(self, value):
-        self._price_kudago = str(value) if value else None
+        self._price_kudago = str(value) if value is not None else None
 
     @property
     def url(self):
@@ -120,7 +120,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @url.setter
     def url(self, value):
-        self._url = str(value) if value else None
+        self._url = str(value) if value is not None else None
 
     @property
     def categories(self):
@@ -137,7 +137,7 @@ class Event(Base, FormattingDataRepresentation):
         :param value: iterator like {"exhibition", "kids"}
         :return:
         """
-        self._categories = self.convert_from_iterator_to_string(value) if value else None
+        self._categories = self.convert_from_iterator_to_string(value) if value is not None else None
 
     @property
     def image(self):
@@ -145,7 +145,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @image.setter
     def image(self, value):
-        self._image = str(value) if value else None
+        self._image = str(value) if value is not None else None
 
     @property
     def start_time(self):
@@ -153,7 +153,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @start_time.setter
     def start_time(self, value):
-        self._start_time = int(value) if value else None
+        self._start_time = int(value) if value is not None else None
 
     @property
     def finish_time(self):
@@ -161,7 +161,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @finish_time.setter
     def finish_time(self, value):
-        self._finish_time = int(value) if value else None
+        self._finish_time = int(value) if value is not None else None
 
     @property
     def join_anytime(self):
@@ -169,7 +169,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @join_anytime.setter
     def join_anytime(self, value):
-        self._join_anytime = bool(value) if value else None
+        self._join_anytime = bool(value) if value is not None else None
 
     @property
     def duplicate_source_id(self):
@@ -177,7 +177,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @duplicate_source_id.setter
     def duplicate_source_id(self, value):
-        self._duplicate_source_id = str(value) if value else None
+        self._duplicate_source_id = str(value) if value is not None else None
 
     @property
     def duplicate_id(self):
@@ -185,7 +185,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @duplicate_id.setter
     def duplicate_id(self, value):
-        self._duplicate_id = int(value) if value else None
+        self._duplicate_id = int(value) if value is not None else None
 
     @property
     def price_min(self):
@@ -193,7 +193,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @price_min.setter
     def price_min(self, value):
-        self._price_min = int(value) if value else None
+        self._price_min = int(value) if value is not None else None
 
     @property
     def price_max(self):
@@ -201,7 +201,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @price_max.setter
     def price_max(self, value):
-        self._price_max = int(value) if value else None
+        self._price_max = int(value) if value is not None else None
 
     @property
     def status(self):
@@ -209,7 +209,7 @@ class Event(Base, FormattingDataRepresentation):
 
     @status.setter
     def status(self, value):
-        self._status = str(value) if value else None
+        self._status = str(value) if value is not None else None
 
     def update_event(self, fresh_event):
         self.source = fresh_event.source

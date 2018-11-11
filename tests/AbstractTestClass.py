@@ -78,7 +78,7 @@ class AbstractTestClass:
         return event
 
     @staticmethod
-    def create_event_yandexafishatheater_theater_beshenyedengi(start_time=4695148800, finish_time=4695235199, duplicate_id=None):
+    def create_event_yandexafishatheater_theater_beshenyedengi(start_time=4697604000, finish_time=4697604000, duplicate_id=None):
         event = Event()
         event.source = "YandexAfishaTheater"
         event.title = "Бешеные деньги"

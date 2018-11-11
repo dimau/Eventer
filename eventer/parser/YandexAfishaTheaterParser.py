@@ -5,8 +5,6 @@ from Event import Event
 import logging
 import copy
 import datetime
-from bs4 import BeautifulSoup
-import re
 
 
 class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
@@ -73,10 +71,11 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         logging.info('We have extracted from page in our list %s events', len(list_with_results))
         return list_with_results
 
-    def _item_parser(self, item):
+    def _item_parser(self, item, test_url=None):
         """
         Extract fields from source HTML or JSON to create Event from them and save to database
         :param item:
+        :param test_url: uses if method have download additional data from the page of concrete event and parse it
         :return: return list of events, in most cases it will contain only one item, but if event has several dates,
         every date will have its own event in list
         """
@@ -98,23 +97,21 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         event.status = "active"
         event.price_min, event.price_max = self._get_price_from_json(item)
 
-        # We have get a page of this event and extract time for every date
-        times = self._get_times_of_event(event.url)
-        print(str(times))
+        # We have one more url request for this event and extracting start_times for every date
+        yandex_event_id = item.get('event', {}).get('id', None)
+        start_times = self._get_start_times_of_the_event(yandex_event_id, test_url=test_url)
 
         # Complicate handling of dates
-        dates = item.get('scheduleInfo', {}).get('dates', [])
-        if len(dates) > 1:
+        if len(start_times) > 1:
             # Firstly we will use unique identifier of the event - url
             # After saving to database we can use our own id
             event.duplicate_source_id = event.url
-        for date_of_event in dates:
-            event_for_date = copy.deepcopy(event)
-            date_parts = date_of_event.split('-')  # date_of_event = "2018-10-14"
-            event_for_date.start_time = int(datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]), tzinfo=datetime.timezone.utc).timestamp())
-            event_for_date.finish_time = event_for_date.start_time + 86400 - 1  # one full day in seconds without 1 second
-            events.append(event_for_date)
-        if len(dates) == 0:
+        for start_time_of_event in start_times:
+            event_session = copy.deepcopy(event)
+            event_session.start_time = start_time_of_event
+            event_session.finish_time = start_time_of_event
+            events.append(event_session)
+        if len(start_times) == 0:
             event.start_time = 0
             event.finish_time = 0
             events.append(event)
@@ -150,61 +147,46 @@ class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
         # Return result
         return price_min, price_max
 
-    def _get_times_of_event(self, url):
+    def _get_start_times_of_the_event(self, yandex_event_id, test_url):
         """
-        This method extracting concrete times of the beginning the event for every date and duration of the event.
-        Return list of tuples like (date, start_time, finish_time) or [] if something goes wrong
-        :param url:
-        :return: example: ()
+        This method extracting concrete times of the beginning of the event for every date.
+        Return list of timestamps in UTC or [] if something goes wrong
+        :param yandex_event_id: this parameter uses for making url for getting data
+        :param test_url: url for data for using in testing purposes
+        :return:
         """
-        all_dates_and_times = []
+        logging.debug('Enter to the method')
+        all_start_times = []
 
-        # Getting of the HTML content for url
+        # Getting the JSON content for yandex_event_id about dates and times
+        # Example of the url for event:
+        # https://afisha.yandex.ru/api/events/5b61991392ced5d88d7e5f69/schedule_other?date=2018-11-11&period=180&city=moscow
+        url = 'https://afisha.yandex.ru/api/events/{0}/schedule_other?date={1}&period=180&city={2}'.format(
+            yandex_event_id, datetime.date.today().isoformat(), "moscow")
+        if test_url:
+            url = test_url + "&event_source_id=" + str(yandex_event_id)
         url_content = self._get_url_content(url)
         if url_content.status_code != 200:
-            return all_dates_and_times
-        content_text = url_content.text
-        soup = BeautifulSoup(content_text)
+            return all_start_times
 
-        # Extracting of the duration of the event
+        # List parser
         try:
-            duration = soup.find('dt', class_='event-attributes__category', text="Время").parent.find('dd', class_='event-attributes__category-value').text
-            duration = re.search(r'\d+', duration).group()
-            duration = int(duration) * 60  # Convert from minutes to seconds
-        except AttributeError as e:
-            duration = 0
+            url_content_json = url_content.json()
+        except Exception as e:
+            logging.error("Bad url content: %s error: %s", url_content, e)
+            return all_start_times
+        list_with_dates_data = url_content_json.get('schedule', {}).get('items', [])
+        logging.debug('We have extracted from page in our list %s events', len(list_with_dates_data))
 
-        # Extracting dates and times for the event
-        all_dates_source = soup.find_all('div', class_='schedule-other-list__item')
-        try:
-            for day in all_dates_source:
-                date_date = day.find('div', class_='schedule-date__date').text
-                date_month = self._convert_month_to_int(day.find('div', class_='schedule-date__month').text)
-                date_time = day.find('div', class_='schedule-session').text
-                all_dates_and_times.append((date_date + "-" + date_month, date_time, date_time + duration))
-        except AttributeError as e:
-            all_dates_and_times = []
-
-        return all_dates_and_times
-
-    @staticmethod
-    def _convert_month_to_int(month):
-        source_month = str(month)
-        converter = {
-            "января": "1",
-            "февраля": "2",
-            "марта": "3",
-            "апреля": "4",
-            "мая": "5",
-            "июня": "6",
-            "июля": "7",
-            "августа": "8",
-            "сентября": "9",
-            "октября": "10",
-            "ноября": "11",
-            "декабря": "12"
-        }
-        return converter.get(source_month, None)
+        # Extracting timestamps of beginnings for the event
+        for day in list_with_dates_data:
+            for session in day.get('sessions', []):
+                item = session.get('session', {}).get('datetime', None)  # 2018-11-11T13:00:00
+                if item is None:
+                    continue
+                item = int(datetime.datetime.strptime(item, "%Y-%m-%dT%H:%M:%S").timestamp())
+                all_start_times.append(item)
+        return all_start_times
 
     def _inactivate_not_represented_on_source_events(self, all_events_ids):
         outdated_events = self._session.query(Event).filter(Event._source == "YandexAfishaTheater").filter(~Event._id.in_(all_events_ids))

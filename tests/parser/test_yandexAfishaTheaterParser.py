@@ -11,7 +11,7 @@ class TestYandexAfishaTheaterParser(AbstractTestClass):
     def test_parsing_page_with_one_event_in_full_mode(self, session, clear_data):
         event = self.create_event_yandexafishatheater_theater_beshenyedengi()
         parser = YandexAfishaTheaterParser(session, mode="full")
-        assert parser.main(test_url="http://127.0.0.1:5000?source=yandexAfishaTheater&testcase=one_event_in_full_mode") == 200
+        assert parser.main(test_url="http://127.0.0.1:5000?source=yandexAfishaTheater&testcase=one_event_in_full_mode") == 2
         event_from_db = session.query(Event).first()
         self.check_equivalence_of_two_events(event, event_from_db)
 

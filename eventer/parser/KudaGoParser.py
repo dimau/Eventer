@@ -84,10 +84,11 @@ class KudaGoParser(AbstractParser, FormattingDataRepresentation):
         logging.info('We have extracted from page in our list %s events', len(list_with_results))
         return list_with_results
 
-    def _item_parser(self, item):
+    def _item_parser(self, item, test_url=None):
         """
         Extract fields from source HTML or JSON to create Event from them
         :param item: part of source HTML or JSON which contains information about one event
+        :param test_url: uses if method have download additional data from the page of concrete event and parse it
         :return: return list of Events, in most cases it will contain only one item, but if event has several dates,
         every date will have its own Event in the list
         """

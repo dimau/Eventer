@@ -61,7 +61,7 @@ class AbstractParser:
             for item in events_collection_source:
 
                 # Parsing of one event in the list into list of related Event objects
-                events = self._item_parser(item)
+                events = self._item_parser(item, test_url=test_url)
                 if len(events) == 0:
                     continue
                 # We are gathering the list of all actual events for now from the source
@@ -145,7 +145,7 @@ class AbstractParser:
     def _check_parsing_pointer(self, item, previous_parsing_pointer_value):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
-    def _item_parser(self, item):
+    def _item_parser(self, item, test_url=None):
         raise NotImplementedError("This method doesn't implemented in the concrete class")
 
     def _checking_events_in_database(self, previous_parsing_pointer_value, events):
