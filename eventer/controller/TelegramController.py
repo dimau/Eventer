@@ -9,17 +9,76 @@ from sqlalchemy.orm import sessionmaker
 from User import User
 from Router import Router
 from TelegramView import TelegramView
+from AbstractController import AbstractController
 # it's needed for operation relationship between User, Event and Rating
 from Event import Event
 from Rating import Rating
 
 
-class TelegramController:
+class TelegramController(AbstractController):
 
-    def __init__(self, session_with_db=None):
-        self.session = session_with_db
+    def __init__(self):
+        self.session = None
 
-    def extract_telegram_user_id(self, update_from_telegram):
+    def main(self):
+
+        # Extracting parameters from command line
+        args = self._extracting_parameters_from_command_line()
+
+        # Launch logging with giving level
+        self._launch_logging("telegram_bot.log", args['log'])
+
+        # Start session with database
+        self.session = self._create_session_with_db()
+
+        # Get telegram_token from environment variable
+        telegram_token = self._get_telegram_token_from_environment_variable()
+
+        # Create main objects for telegram working
+        updater = Updater(token=telegram_token)
+        dispatcher = updater.dispatcher
+        # Create handlers of telegram events
+        start_command_handler = CommandHandler('start', self._start_command)
+        text_message_handler = MessageHandler(Filters.text, self._text_message)
+        callback_button_handler = CallbackQueryHandler(self._callback_button_request)
+        inline_query_handler = InlineQueryHandler(self._inline_text)
+        # Add handlers of telegram events to dispatcher
+        dispatcher.add_handler(start_command_handler)
+        dispatcher.add_handler(text_message_handler)
+        dispatcher.add_handler(callback_button_handler)
+        dispatcher.add_handler(inline_query_handler)
+        # Run endless cycle of getting new messages from telegram
+        updater.start_polling(clean=True)
+        # Stop bot if Ctrl + C were pushed in console
+        updater.idle()
+
+    @staticmethod
+    def _extracting_parameters_from_command_line():
+        """
+        Extracting parameters from command line
+        We are expecting launch by command like: 'python eventer/model/TelegramController.py --log=INFO'
+        :return:
+        """
+        result_args = {
+            'log': "INFO"
+        }
+        parser = argparse.ArgumentParser(description='parser of arguments of command line for telegram bot launch')
+        parser.add_argument('--log', action='store', dest='log', help='level of logging for this launch')
+        args = parser.parse_args()
+        if args.log and args.log.upper() in ['DEBUG', 'INFO', 'WARNING', 'ERROR', 'CRITICAL']:
+            result_args['log'] = args.log.upper()
+        return result_args
+
+    @staticmethod
+    def _get_telegram_token_from_environment_variable():
+        telegram_token = os.environ.get("TELEGRAMTOKEN", None)
+        if not telegram_token:
+            logging.error("Cannot find environment variable TELEGRAMTOKEN")
+            raise KeyError("Cannot find environment variable TELEGRAMTOKEN")
+        return telegram_token
+
+    @staticmethod
+    def _extract_telegram_user_id(update_from_telegram):
         """
         Extract telegram user id from Update
         :param update_from_telegram:
@@ -31,28 +90,26 @@ class TelegramController:
             user_telegram_id = None
         return user_telegram_id
 
-    # Initialize user
-    def get_user(self, update_from_telegram, session):
+    def _get_user(self, update_from_telegram):
         """
         Function to get user from our database by its telegram id
         :param update_from_telegram:
-        :param session:
         :return:
         """
         logging.debug("Enter to the method")
-        user_telegram_id = self.extract_telegram_user_id(update_from_telegram)
+        user_telegram_id = self._extract_telegram_user_id(update_from_telegram)
         logging.info('user telegram id has extracted = %s', user_telegram_id)
-        user = session.query(User).filter(User._telegram_id == user_telegram_id).first()
+        user = self.session.query(User).filter(User._telegram_id == user_telegram_id).first()
         logging.info('user from database: %s', user)
         if not user:
             user = User(telegram_id=user_telegram_id)
-            session.add(user)
-            session.commit()
-            user = session.query(User).filter(User._telegram_id == user_telegram_id).first()
+            self.session.add(user)
+            self.session.commit()
+            user = self.session.query(User).filter(User._telegram_id == user_telegram_id).first()
             logging.info('Create a new user in database: %s', user)
         return user
 
-    def start_command(self, bot, update_from_telegram):
+    def _start_command(self, bot, update_from_telegram):
         """
         Handler for first command - start
         :param bot:
@@ -61,9 +118,9 @@ class TelegramController:
         """
         user_message_text = "start"
         type_user_message = "start"
-        logging.info('User starts work with chat-bot: start_command')
-        user = self.get_user(update_from_telegram, session)
-        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        logging.info('User starts work with chat-bot: _start_command')
+        user = self._get_user(update_from_telegram)
+        text_answer, buttons_answer, message_buttons, image_preview = self._handle_request(user_message_text, type_user_message, user)
         if message_buttons:
             buttons_answer = message_buttons
         status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
@@ -73,7 +130,7 @@ class TelegramController:
                                                      disable_web_page_preview=image_preview)
         logging.info("Status of sending message from telegram: %s", status_of_sending_message)
 
-    def text_message(self, bot, update_from_telegram):
+    def _text_message(self, bot, update_from_telegram):
         """
         Handler for text message from telegram user
         :param bot:
@@ -85,10 +142,10 @@ class TelegramController:
             return
         user_message_text = update_from_telegram.message.text
         message_chat_id = update_from_telegram.message.chat_id
-        type_user_message = "text_message"
+        type_user_message = "_text_message"
         logging.info('User write text message: %s', user_message_text)
-        user = self.get_user(update_from_telegram, session)
-        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text, type_user_message, user)
+        user = self._get_user(update_from_telegram)
+        text_answer, buttons_answer, message_buttons, image_preview = self._handle_request(user_message_text, type_user_message, user)
         if message_buttons:
             buttons_answer = message_buttons
         status_of_sending_message = bot.send_message(chat_id=message_chat_id,
@@ -98,7 +155,7 @@ class TelegramController:
                                                      disable_web_page_preview=image_preview)
         logging.info("Status of sending message from telegram: %s", status_of_sending_message)
 
-    def callback_button_request(self, bot, update_from_telegram):
+    def _callback_button_request(self, bot, update_from_telegram):
         """
         Handler for requests from pushing message buttons (callback buttons or inline buttons)
         We suppose that push this button have to be the same like you write name of the button to the chat with bot
@@ -112,9 +169,9 @@ class TelegramController:
         logging.info('User push message button: %s', user_message_text)
 
         # Take user and data for answer
-        user = self.get_user(update_from_telegram, session)
-        text_answer, buttons_answer, message_buttons, image_preview = self.handle_request(user_message_text,
-                                                                                          type_user_message, user)
+        user = self._get_user(update_from_telegram)
+        text_answer, buttons_answer, message_buttons, image_preview = self._handle_request(user_message_text,
+                                                                                           type_user_message, user)
         # First priority for buttons showed with message
         if message_buttons:
             buttons_answer = message_buttons
@@ -132,11 +189,11 @@ class TelegramController:
                                                      disable_web_page_preview=image_preview)
         logging.info("Status of sending message from telegram: %s", status_of_sending_message)
 
-    def handle_request(self, user_message_text, type_user_message, user):
-        router = Router(user_message_text=user_message_text, session_with_db=self.session, user=user,
-                        type_user_message=type_user_message)
-        logging.debug("Router has been created: %s", router)
-        answer_maker = router.get_answer_maker()
+    def _handle_request(self, user_message_text, type_user_message, user):
+        answer_maker = Router.get_answer_maker(user_message_text=user_message_text,
+                                               session_with_db=self.session,
+                                               user=user,
+                                               type_user_message=type_user_message)
         logging.info('Answer maker is: %s', answer_maker)
         data_for_answer = answer_maker.get_answer()
         logging.info('Data for answer from answer maker: %s', data_for_answer)
@@ -147,7 +204,8 @@ class TelegramController:
         image_preview = TelegramView.is_not_allowed_images_preview(data_for_answer)
         return text_answer, buttons_answer, message_buttons, image_preview
 
-    def inline_text(self, bot, update_from_telegram):
+    @staticmethod
+    def _inline_text(bot, update_from_telegram):
         status_of_sending_message = bot.send_message(chat_id=update_from_telegram.message.chat_id,
                                                      parse_mode='HTML',
                                                      text="Я в таком режиме не умею работать")
@@ -165,67 +223,7 @@ class TelegramController:
                                                      text="Работает")
         logging.info("Checking of working chat bot is OK: %s", status_of_sending_message)
 
+
 if __name__ == "__main__":
-
-    # Get telegram_token from environment variable
-    telegram_token = os.environ.get("TELEGRAMTOKEN", None)
-    if not telegram_token:
-        logging.error("Cannot find environment variable TELEGRAMTOKEN")
-        raise KeyError("Cannot find environment variable TELEGRAMTOKEN")
-
-    # Extracting parameters from command line
-    # We are expecting launch by command like: 'python eventer/model/TelegramController.py --log=INFO'
-    parser = argparse.ArgumentParser(description='parser of arguments of command line for telegram bot launch')
-    parser.add_argument('--log', action='store', dest='loglevel', help='level of logging for this launch')
-    args = parser.parse_args()
-
-    # Check for logging level
-    log_level = args.loglevel if args.loglevel else "INFO"
-    numeric_level = getattr(logging, log_level.upper(), None)
-    if not isinstance(numeric_level, int):
-        raise ValueError("Invalid log level: {}".format(log_level))
-
-    # Logging tuning
-    logging.basicConfig(format='%(levelname)s - %(asctime)s - %(module)s - %(funcName)s - %(message)s',
-                        level=numeric_level,
-                        filename='/tmp/telegram_bot.log'
-                        )
-
-    # Create main objects for telegram working
-    updater = Updater(token=telegram_token)
-    dispatcher = updater.dispatcher
-
-    # Start session with database
-    user_for_mysql = os.environ.get("USERMYSQL", None)
-    if not user_for_mysql:
-        logging.error("Cannot find environment variable USERMYSQL")
-        raise KeyError("Cannot find environment variable USERMYSQL")
-    password_for_mysql = os.environ.get("PASSWORDMYSQL", None)
-    if not password_for_mysql:
-        logging.error("Cannot find environment variable PASSWORDMYSQL")
-        raise KeyError("Cannot find environment variable PASSWORDMYSQL")
-    name_of_database_for_mysql = os.environ.get("DATABASEMYSQL", None)
-    if not name_of_database_for_mysql:
-        logging.error("Cannot find environment variable DATABASEMYSQL")
-        raise KeyError("Cannot find environment variable DATABASEMYSQL")
-    engine = sqlalchemy.create_engine(
-        "mysql://" + user_for_mysql + ":" + password_for_mysql + "@localhost/" + name_of_database_for_mysql + "?charset=utf8", echo=False)
-    Session = sessionmaker(bind=engine)
-    session = Session()
-
-    controller = TelegramController(session)
-
-    # Create handlers of telegram events
-    start_command_handler = CommandHandler('start', controller.start_command)
-    text_message_handler = MessageHandler(Filters.text, controller.text_message)
-    callback_button_handler = CallbackQueryHandler(controller.callback_button_request)
-    inline_query_handler = InlineQueryHandler(controller.inline_text)
-    # Add handlers of telegram events to dispatcher
-    dispatcher.add_handler(start_command_handler)
-    dispatcher.add_handler(text_message_handler)
-    dispatcher.add_handler(callback_button_handler)
-    dispatcher.add_handler(inline_query_handler)
-    # Run endless cycle of getting new messages from telegram
-    updater.start_polling(clean=True)
-    # Stop bot if Ctrl + C were pushed in console
-    updater.idle()
+    controller = TelegramController()
+    controller.main()

@@ -5,12 +5,13 @@ from Event import Event
 import logging
 import copy
 import datetime
+import time
 
 
-class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
+class YandexAfishaTheaterParser(AbstractParser, FormattingDataRepresentation):
 
     def _create_parsing_pointer(self):
-        parsing_pointer = ParsingPointer.get_parsing_pointer(source="YandexAfishaCinema", session=self._session)
+        parsing_pointer = ParsingPointer.get_parsing_pointer(source="YandexAfishaTheater", session=self._session)
         return parsing_pointer
 
     def _check_parsing_pointer(self, event_dictionary, previous_parsing_pointer_value):
@@ -39,7 +40,7 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
         if test_url:
             return test_url + "&page=" + str(page)
 
-        url_template = 'https://afisha.yandex.ru/api/events/selection/all-events-cinema?' \
+        url_template = 'https://afisha.yandex.ru/api/events/selection/all-events-theatre?' \
                        'limit=%(limit)s&' \
                        'offset=%(offset)s&' \
                        'hasMixed=%(hasMixed)s&' \
@@ -94,29 +95,31 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
             event.description = item.get('event', {}).get('argument', None)
             event.categories = self._get_all_categories(item.get('event', {}).get('systemTags', []))
             event.image = item.get('event', {}).get('image', {}).get('eventCover', {}).get('url', None)
-            event.source_rating_value = item.get('event', {}).get('kinopoisk', {}).get('value', None)
-            event.source_rating_count = item.get('event', {}).get('kinopoisk', {}).get('votes', None)
+            event.source_rating_value = item.get('event', {}).get('userRating', {}).get('overall', {}).get('value', None)
+            event.source_rating_count = item.get('event', {}).get('userRating', {}).get('overall', {}).get('count', None)
         except (KeyError, AttributeError):
             pass
-        event.source = "YandexAfishaCinema"
+        event.source = "YandexAfishaTheater"
         event.status = "active"
-        # Now we write to the DB not all sessions with every film (too much every day) but only days
-        # when this film is on screens in cinemas
-        event.join_anytime = True
+        event.join_anytime = False
+        event.price_min, event.price_max = self._get_price_from_json(item)
+
+        # We have one more url request for this event and extracting start_times for every date
+        yandex_event_id = item.get('event', {}).get('id', None)
+        time.sleep(1)  # Add sleep to don't ddos attack source server
+        start_times = self._get_start_times_of_the_event(yandex_event_id, test_url=test_url)
 
         # Complicate handling of dates
-        dates = item.get('scheduleInfo', {}).get('dates', [])
-        if len(dates) > 1:
+        if len(start_times) > 1:
             # Firstly we will use unique identifier of the event - url
             # After saving to database we can use our own id
             event.duplicate_source_id = event.url
-        for date_of_event in dates:
-            event_for_date = copy.deepcopy(event)
-            date_parts = date_of_event.split('-')  # date_of_event = "2018-10-14"
-            event_for_date.start_time = int(datetime.datetime(int(date_parts[0]), int(date_parts[1]), int(date_parts[2]), tzinfo=datetime.timezone.utc).timestamp())
-            event_for_date.finish_time = event_for_date.start_time + 86400 - 1  # one full day in seconds without 1 second
-            events.append(event_for_date)
-        if len(dates) == 0:
+        for start_time_of_event in start_times:
+            event_session = copy.deepcopy(event)
+            event_session.start_time = start_time_of_event
+            event_session.finish_time = start_time_of_event
+            events.append(event_session)
+        if len(start_times) == 0:
             event.start_time = 0
             event.finish_time = 0
             events.append(event)
@@ -126,13 +129,75 @@ class YandexAfishaCinemaParser(AbstractParser, FormattingDataRepresentation):
     @staticmethod
     def _get_all_categories(source_list):
         categories = set()
-        categories.add("cinema")
+        categories.add("theater")
         for item in source_list:
             categories.add(item['code'])
         return categories
 
+    @staticmethod
+    def _get_price_from_json(item):
+        # Initialization
+        price_min = None
+        price_max = None
+
+        try:
+            price_min = item['event']['tickets'][0]['price']['min']
+            price_min = int(int(price_min) / 100)
+        except (KeyError, IndexError):
+            price_min = None
+
+        try:
+            price_max = item['event']['tickets'][0]['price']['max']
+            price_max = int(int(price_max) / 100)
+        except (KeyError, IndexError):
+            price_max = None
+
+        # Return result
+        return price_min, price_max
+
+    def _get_start_times_of_the_event(self, yandex_event_id, test_url):
+        """
+        This method extracting concrete times of the beginning of the event for every date.
+        Return list of timestamps in UTC or [] if something goes wrong
+        :param yandex_event_id: this parameter uses for making url for getting data
+        :param test_url: url for data for using in testing purposes
+        :return:
+        """
+        logging.debug('Enter to the method')
+        all_start_times = []
+
+        # Getting the JSON content for yandex_event_id about dates and times
+        # Example of the url for event:
+        # https://afisha.yandex.ru/api/events/5b61991392ced5d88d7e5f69/schedule_other?date=2018-11-11&period=180&city=moscow
+        url = 'https://afisha.yandex.ru/api/events/{0}/schedule_other?date={1}&period=180&city={2}'.format(
+            yandex_event_id, datetime.date.today().isoformat(), "moscow")
+        if test_url:
+            url = test_url + "&event_source_id=" + str(yandex_event_id)
+        url_content = self._get_url_content(url)
+        if url_content.status_code != 200:
+            return all_start_times
+
+        # List parser
+        try:
+            url_content_json = url_content.json()
+        except Exception as e:
+            logging.error("Bad url content: %s error: %s", url_content, e)
+            return all_start_times
+        list_with_dates_data = url_content_json.get('schedule', {}).get('items', [])
+        logging.debug('We have extracted from page in our list %s events', len(list_with_dates_data))
+
+        # Extracting timestamps of beginnings for the event
+        for day in list_with_dates_data:
+            for session in day.get('sessions', []):
+                item = session.get('session', {}).get('datetime', None)  # 2018-11-11T13:00:00
+                if item is None:
+                    continue
+                item = int(datetime.datetime.strptime(item, "%Y-%m-%dT%H:%M:%S").timestamp())
+                all_start_times.append(item)
+        return all_start_times
+
     def _inactivate_not_represented_on_source_events(self, all_events_ids):
-        outdated_events = self._session.query(Event).filter(Event._source == "YandexAfishaCinema").filter(~Event._id.in_(all_events_ids))
+        outdated_events = self._session.query(Event).filter(Event._source == "YandexAfishaTheater").filter(~Event._id.in_(all_events_ids))
         for event in outdated_events:
             event.status = "hidden"
             self._session.add(event)

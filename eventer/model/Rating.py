@@ -15,7 +15,7 @@ class Rating(Base):
     user = relationship("User", back_populates="ratings")
     event = relationship("Event", back_populates="ratings")
 
-    def __init__(self, user_id=0, event_id=0, like=2):
+    def __init__(self, user_id, event_id, like):
         self._user_id = user_id
         self._event_id = event_id
         self._like = like
